@@ -1,0 +1,6 @@
+{
+  "name": "MuniTour",
+  "description": "Plataforma de turismo intermunicipal y gastronomía: rutas entre municipios, mapa interactivo, perfil de viajero y agenda cultural.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

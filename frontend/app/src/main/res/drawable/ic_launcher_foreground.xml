@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Pin marker body -->
+    <path
+        android:fillColor="#5CC3CD"
+        android:pathData="M54,23 C41.3,23 31,33.3 31,46 C31,61 54,84 54,84 C54,84 77,61 77,46 C77,33.3 66.7,23 54,23 Z" />
+    <!-- Pin inner circle with dark contrast -->
+    <path
+        android:fillColor="#0F2F36"
+        android:pathData="M54,45 m-15,0 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0" />
+    <!-- Coffee cup & steam silhouette inside the pin -->
+    <path
+        android:fillColor="#E58F63"
+        android:pathData="M46,42 h13 c0,0 0,6 -2,8 c-2,2 -9,2 -11,0 Z" />
+    <!-- Cup handle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E58F63"
+        android:strokeWidth="1.5"
+        android:pathData="M59,43 h2 a2,2 0 0,1 2,2 v1 a2,2 0 0,1 -2,2 h-2" />
+    <!-- Cup saucer -->
+    <path
+        android:fillColor="#E58F63"
+        android:pathData="M44,52 h17 v1.5 h-17 Z" />
+    <!-- Coffee steam lines -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFE2B8"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M49,39 C48,37 50,36 49,34 M54,39 C53,37 55,36 54,34 M59,39 C58,37 60,36 59,34" />
+</vector>

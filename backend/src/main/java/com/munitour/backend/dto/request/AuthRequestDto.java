@@ -22,6 +22,13 @@ public class AuthRequestDto {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("fullName")
+    public void setFullName(String fullName) {
+        if (this.name == null || this.name.isBlank()) {
+            this.name = fullName;
+        }
+    }
+
     @JsonProperty("password")
     private String password;
 }

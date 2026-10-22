@@ -103,6 +103,12 @@ class MuniTourViewModel(
     private val _showAuthDialog = MutableStateFlow(false)
     val showAuthDialog: StateFlow<Boolean> = _showAuthDialog.asStateFlow()
 
+    private val _isAuthLoading = MutableStateFlow(false)
+    val isAuthLoading: StateFlow<Boolean> = _isAuthLoading.asStateFlow()
+
+    private val _authError = MutableStateFlow<String?>(null)
+    val authError: StateFlow<String?> = _authError.asStateFlow()
+
     private val _showProfileDialog = MutableStateFlow(false)
     val showProfileDialog: StateFlow<Boolean> = _showProfileDialog.asStateFlow()
 
@@ -351,6 +357,56 @@ class MuniTourViewModel(
 
     fun closeAuthDialog() {
         _showAuthDialog.value = false
+        _authError.value = null
+    }
+
+    fun clearAuthError() {
+        _authError.value = null
+    }
+
+    fun loginWithEmail(email: String, pass: String) {
+        viewModelScope.launch {
+            _isAuthLoading.value = true
+            _authError.value = null
+            val result = repository.loginWithEmail(email, pass)
+            _isAuthLoading.value = false
+            result.onSuccess { user ->
+                closeAuthDialog()
+                showToast("¡Bienvenido, ${user.name}! Sesión iniciada con éxito.")
+            }.onFailure { err ->
+                _authError.value = err.message ?: "Error al iniciar sesión. Verifica tus credenciales."
+            }
+        }
+    }
+
+    fun registerWithEmail(name: String, email: String, pass: String) {
+        viewModelScope.launch {
+            _isAuthLoading.value = true
+            _authError.value = null
+            val result = repository.registerWithEmail(name, email, pass)
+            _isAuthLoading.value = false
+            result.onSuccess { user ->
+                closeAuthDialog()
+                showToast("¡Cuenta creada exitosamente! Bienvenido, ${user.name}.")
+            }.onFailure { err ->
+                _authError.value = err.message ?: "Error al registrar la cuenta. Intenta de nuevo."
+            }
+        }
+    }
+
+    fun loginWithGoogle(idTokenOrEmail: String, fallbackName: String? = null) {
+        viewModelScope.launch {
+            _isAuthLoading.value = true
+            _authError.value = null
+            val result = repository.loginWithGoogle(idTokenOrEmail, fallbackName)
+            _isAuthLoading.value = false
+            result.onSuccess { user ->
+                closeAuthDialog()
+                showToast("¡Autenticación con Google exitosa! Hola, ${user.name}.")
+            }.onFailure { err ->
+                _authError.value = err.message ?: "Error en autenticación con Google."
+            }
+        }
     }
 
     fun loginUser(email: String, name: String) {
@@ -376,6 +432,45 @@ class MuniTourViewModel(
     fun updateProfile(name: String, originCity: String, avatar: String, coffee: String) {
         repository.updateProfile(name, originCity, avatar, coffee)
         showToast("Perfil de viajero actualizado.")
+    }
+
+    fun saveFullProfile(
+        name: String,
+        originCity: String,
+        avatar: String,
+        coffee: String,
+        phone: String,
+        bio: String,
+        preferredTransport: String
+    ) {
+        viewModelScope.launch {
+            val result = repository.saveFullProfile(
+                name = name,
+                originCity = originCity,
+                avatarEmoji = avatar,
+                favoriteCoffee = coffee,
+                phone = phone,
+                bio = bio,
+                preferredTransport = preferredTransport
+            )
+            result.onSuccess {
+                showToast("Perfil de viajero guardado y sincronizado con el servidor.")
+            }.onFailure {
+                showToast("Perfil guardado localmente (modo sin conexión).")
+            }
+        }
+    }
+
+    fun syncData() {
+        viewModelScope.launch {
+            showToast("Sincronizando información con el servidor...")
+            val result = repository.syncWithRemoteBackend()
+            result.onSuccess { msg ->
+                showToast(msg)
+            }.onFailure {
+                showToast("No se pudo conectar al servidor. Usando datos locales.")
+            }
+        }
     }
 
     // Inter-municipal dialogs

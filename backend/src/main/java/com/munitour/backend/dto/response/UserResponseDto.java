@@ -28,6 +28,15 @@ public class UserResponseDto {
     @JsonProperty("origin_city")
     private String originCity;
 
+    @JsonProperty("phone")
+    private String phone;
+
+    @JsonProperty("bio")
+    private String bio;
+
+    @JsonProperty("preferred_transport")
+    private String preferredTransport;
+
     @JsonProperty("avatar_emoji")
     private String avatarEmoji;
 
@@ -48,4 +57,7 @@ public class UserResponseDto {
 
     @JsonProperty("favorite_coffee_method")
     private String favoriteCoffeeMethod;
+
+    @JsonProperty("created_at")
+    private String createdAt;
 }

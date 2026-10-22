@@ -37,6 +37,18 @@ public class AppUser {
     private String originCity = "Cajicá, Cundinamarca";
 
     @Builder.Default
+    @Column(name = "phone", length = 32)
+    private String phone = "+57 310 123 4567";
+
+    @Builder.Default
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio = "Apasionado por la gastronomía, el senderismo y las tradiciones de Sabana Centro.";
+
+    @Builder.Default
+    @Column(name = "preferred_transport", length = 64)
+    private String preferredTransport = "Tren / RegioTram";
+
+    @Builder.Default
     @Column(name = "favorite_coffee_method")
     private String favoriteCoffeeMethod = "Filtrado Chemex";
 

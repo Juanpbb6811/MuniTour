@@ -30,6 +30,15 @@ public class UserService {
         if (StringUtils.hasText(dto.getName())) {
             user.setFullName(dto.getName());
         }
+        if (StringUtils.hasText(dto.getPhone())) {
+            user.setPhone(dto.getPhone());
+        }
+        if (StringUtils.hasText(dto.getBio())) {
+            user.setBio(dto.getBio());
+        }
+        if (StringUtils.hasText(dto.getPreferredTransport())) {
+            user.setPreferredTransport(dto.getPreferredTransport());
+        }
         if (StringUtils.hasText(dto.getOriginCity())) {
             user.setOriginCity(dto.getOriginCity());
         }

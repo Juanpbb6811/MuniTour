@@ -16,12 +16,31 @@ import com.example.data.api.DishDto
 import com.example.data.api.CulturalEventDto
 import com.example.data.api.CultureRouteDto
 import com.example.data.api.ReviewDto
+import com.example.data.api.AuthRequest
+import com.example.data.api.AuthResponse
+import com.example.data.api.GoogleAuthRequest
+import com.example.data.api.InterMunicipalRouteDto
+import com.example.data.api.UserProfileDto
+import com.example.data.api.UserUpdateProfileDto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class MuniTourRepository {
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                syncWithRemoteBackend()
+            } catch (_: Exception) {
+                // Offline fallback remains completely functional
+            }
+        }
+    }
 
     // Municipalities of Sabana Centro & Regional network
     val destinations = listOf(
@@ -88,9 +107,13 @@ class MuniTourRepository {
             id = "user_guest",
             name = "Juan Pablo Bejarano",
             email = "juanpablobejarano0@gmail.com",
+            phone = "+57 310 123 4567",
+            bio = "Amante de los senderos de Sabana Centro, la fotografía y el café de altura.",
             avatarEmoji = "🧭",
             originCity = "Cajicá / Bogotá",
             travelerLevel = "Explorador Cittaslow",
+            preferredTransport = "Tren / RegioTram",
+            memberSince = "Octubre 2026",
             completedRoutesCount = 4,
             visitedPlacesCount = 11,
             reviewsCount = 6,
@@ -100,6 +123,114 @@ class MuniTourRepository {
         )
     )
     val currentUser: StateFlow<UserProfile> = _currentUser.asStateFlow()
+
+    suspend fun loginWithEmail(email: String, password: String): Result<UserProfile> {
+        return runCatching {
+            val response = ApiClient.apiService.login(AuthRequest(email = email.trim(), password = password))
+            ApiClient.setAuthToken(response.token)
+            val profile = runCatching {
+                ApiClient.apiService.getCurrentUser().toDomain(token = response.token)
+            }.getOrElse {
+                UserProfile(
+                    id = response.userId.ifBlank { "user_" + System.currentTimeMillis() },
+                    name = response.name.ifBlank { email.substringBefore("@") },
+                    email = response.email.ifBlank { email },
+                    travelerLevel = response.travelerLevel,
+                    isLoggedIn = true,
+                    token = response.token
+                )
+            }
+            _currentUser.value = profile
+            profile
+        }
+    }
+
+    suspend fun registerWithEmail(name: String, email: String, password: String): Result<UserProfile> {
+        return runCatching {
+            val response = ApiClient.apiService.register(
+                AuthRequest(name = name.trim(), fullName = name.trim(), email = email.trim(), password = password)
+            )
+            ApiClient.setAuthToken(response.token)
+            val profile = runCatching {
+                ApiClient.apiService.getCurrentUser().toDomain(token = response.token)
+            }.getOrElse {
+                UserProfile(
+                    id = response.userId.ifBlank { "user_" + System.currentTimeMillis() },
+                    name = if (response.name.isNotBlank()) response.name else name.trim(),
+                    email = response.email.ifBlank { email },
+                    travelerLevel = response.travelerLevel,
+                    isLoggedIn = true,
+                    token = response.token
+                )
+            }
+            _currentUser.value = profile
+            profile
+        }
+    }
+
+    suspend fun loginWithGoogle(idTokenOrEmail: String, fallbackName: String? = null): Result<UserProfile> {
+        return runCatching {
+            val response = ApiClient.apiService.googleLogin(GoogleAuthRequest(idToken = idTokenOrEmail.trim()))
+            ApiClient.setAuthToken(response.token)
+            val profile = runCatching {
+                ApiClient.apiService.getCurrentUser().toDomain(token = response.token)
+            }.getOrElse {
+                UserProfile(
+                    id = response.userId.ifBlank { "user_google_" + System.currentTimeMillis() },
+                    name = response.name.ifBlank { fallbackName ?: idTokenOrEmail.substringBefore("@") },
+                    email = response.email.ifBlank { idTokenOrEmail },
+                    travelerLevel = response.travelerLevel,
+                    isLoggedIn = true,
+                    token = response.token
+                )
+            }
+            _currentUser.value = profile
+            profile
+        }
+    }
+
+    suspend fun saveFullProfile(
+        name: String,
+        originCity: String,
+        avatarEmoji: String,
+        favoriteCoffee: String,
+        phone: String,
+        bio: String,
+        preferredTransport: String
+    ): Result<UserProfile> {
+        val current = _currentUser.value
+        val updatedLocal = current.copy(
+            name = name,
+            originCity = originCity,
+            avatarEmoji = avatarEmoji,
+            favoriteCoffeeMethod = favoriteCoffee,
+            phone = phone,
+            bio = bio,
+            preferredTransport = preferredTransport
+        )
+        _currentUser.value = updatedLocal
+
+        return runCatching {
+            if (ApiClient.getAuthToken() != null && current.isLoggedIn) {
+                val remoteDto = ApiClient.apiService.updateCurrentUser(
+                    UserUpdateProfileDto(
+                        name = name,
+                        originCity = originCity,
+                        avatarEmoji = avatarEmoji,
+                        favoriteCoffeeMethod = favoriteCoffee,
+                        phone = phone,
+                        bio = bio,
+                        preferredTransport = preferredTransport
+                    )
+                )
+                val remoteUser = remoteDto.toDomain(token = current.token)
+                _currentUser.value = remoteUser
+                remoteUser
+            } else {
+                updatedLocal
+            }
+        }
+    }
 
     fun login(email: String, name: String) {
         _currentUser.update {
@@ -112,11 +243,26 @@ class MuniTourRepository {
     }
 
     fun logout() {
-        _currentUser.update {
-            it.copy(
-                isLoggedIn = false
-            )
-        }
+        ApiClient.setAuthToken(null)
+        _currentUser.value = UserProfile(
+            id = "user_guest",
+            name = "Viajero Explorador",
+            email = "viajero@munitour.co",
+            phone = "+57 310 123 4567",
+            bio = "Explorando la Sabana Centro.",
+            avatarEmoji = "🧭",
+            originCity = "Cajicá / Sabana",
+            travelerLevel = "Explorador Cittaslow",
+            preferredTransport = "Tren / RegioTram",
+            memberSince = "Octubre 2026",
+            completedRoutesCount = 0,
+            visitedPlacesCount = 0,
+            reviewsCount = 0,
+            ecoPoints = 50,
+            favoriteCoffeeMethod = "Filtrado",
+            isLoggedIn = false,
+            token = null
+        )
     }
 
     fun updateProfile(name: String, originCity: String, avatarEmoji: String, favoriteCoffee: String) {
@@ -182,15 +328,30 @@ class MuniTourRepository {
 
     fun addPlace(place: Place) {
         _places.update { it + place }
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                ApiClient.apiService.createPlace(place.toDto())
+            }
+        }
     }
 
     fun addDish(dish: Dish) {
         _dishes.update { it + dish }
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                // Future dish remote sync if needed
+            }
+        }
     }
 
     fun addReview(review: Review) {
         _reviews.update { listOf(review) + it }
         _currentUser.update { it.copy(reviewsCount = it.reviewsCount + 1, ecoPoints = it.ecoPoints + 25) }
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                ApiClient.apiService.submitReview(review.toDto())
+            }
+        }
     }
 
     private fun initialPlaces(): List<Place> {
@@ -1002,6 +1163,16 @@ class MuniTourRepository {
             if (remoteEvents.isNotEmpty()) {
                 _events.value = remoteEvents.map { it.toDomain() }
             }
+            val remoteRoutes = runCatching { ApiClient.apiService.getInterMunicipalRoutes() }.getOrNull()
+            if (!remoteRoutes.isNullOrEmpty()) {
+                _interMunicipalRoutes.value = remoteRoutes.map { it.toDomain() }
+            }
+            if (ApiClient.getAuthToken() != null && _currentUser.value.isLoggedIn) {
+                runCatching {
+                    val profileDto = ApiClient.apiService.getCurrentUser()
+                    _currentUser.value = profileDto.toDomain(token = ApiClient.getAuthToken())
+                }
+            }
             "Sincronizado exitosamente con el backend"
         }
     }
@@ -1107,5 +1278,71 @@ fun CulturalEventDto.toDomain(): CulturalEvent {
         emoji = this.emoji,
         category = this.category,
         description = this.description
+    )
+}
+
+fun ReviewDto.toDomain(): Review {
+    return Review(
+        id = this.id,
+        placeId = this.placeId,
+        authorName = this.authorName,
+        rating = this.rating,
+        date = this.date,
+        comment = this.comment,
+        serviceHighlight = this.serviceHighlight,
+        coffeeRating = this.coffeeRating
+    )
+}
+
+fun Review.toDto(): ReviewDto {
+    return ReviewDto(
+        id = this.id,
+        placeId = this.placeId,
+        authorName = this.authorName,
+        rating = this.rating,
+        date = this.date,
+        comment = this.comment,
+        serviceHighlight = this.serviceHighlight,
+        coffeeRating = this.coffeeRating
+    )
+}
+
+fun InterMunicipalRouteDto.toDomain(): InterMunicipalRoute {
+    return InterMunicipalRoute(
+        id = this.id,
+        title = this.title,
+        subtitle = this.subtitle,
+        theme = this.theme,
+        municipalities = this.municipalities,
+        totalDistanceKm = this.totalDistanceKm,
+        estimatedDuration = this.estimatedDuration,
+        transportMode = this.transportMode,
+        difficulty = this.difficulty,
+        keyStops = this.keyStops,
+        description = this.description,
+        highlightTip = this.highlightTip,
+        emoji = this.emoji.ifBlank { "🛤️" }
+    )
+}
+
+fun UserProfileDto.toDomain(token: String? = null): UserProfile {
+    return UserProfile(
+        id = this.id.ifBlank { "user_" + System.currentTimeMillis() },
+        name = this.fullName.ifBlank { "Viajero Sabanero" },
+        email = this.email,
+        phone = this.phone ?: "+57 310 123 4567",
+        bio = this.bio ?: "Amante de los senderos de Sabana Centro, la fotografía y el café de altura.",
+        avatarEmoji = this.avatarEmoji ?: "🧭",
+        originCity = this.originCity ?: "Cajicá / Bogotá",
+        travelerLevel = this.travelerLevel ?: "Explorador Cittaslow",
+        preferredTransport = this.preferredTransport ?: "Tren / RegioTram",
+        memberSince = this.createdAt?.take(10) ?: "Octubre 2026",
+        completedRoutesCount = this.completedRoutesCount,
+        visitedPlacesCount = this.visitedPlacesCount,
+        reviewsCount = this.reviewsCount,
+        ecoPoints = this.ecoPoints,
+        favoriteCoffeeMethod = this.favoriteCoffeeMethod ?: "V60 Dripper",
+        isLoggedIn = true,
+        token = token
     )
 }

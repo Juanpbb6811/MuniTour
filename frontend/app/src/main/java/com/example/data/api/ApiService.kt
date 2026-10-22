@@ -3,6 +3,7 @@ package com.example.data.api
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -54,4 +55,16 @@ interface ApiService {
 
     @POST("api/auth/register")
     suspend fun register(@Body request: AuthRequest): AuthResponse
+
+    @POST("api/auth/google")
+    suspend fun googleLogin(@Body request: GoogleAuthRequest): AuthResponse
+
+    @GET("api/routes/inter-municipal")
+    suspend fun getInterMunicipalRoutes(): List<InterMunicipalRouteDto>
+
+    @GET("api/users/me")
+    suspend fun getCurrentUser(): UserProfileDto
+
+    @PUT("api/users/me")
+    suspend fun updateCurrentUser(@Body request: UserUpdateProfileDto): UserProfileDto
 }

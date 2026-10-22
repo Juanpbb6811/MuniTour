@@ -102,32 +102,47 @@ public class AuthService {
         }
 
         try {
-            // Verificar el token con el endpoint oficial de Google OAuth2
-            String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
-            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<>() {}
-            );
+            String googleEmail;
+            String googleSub;
+            String googleName;
 
-            Map<String, Object> body = response.getBody();
-            if (body == null || !body.containsKey("email")) {
-                throw new BadRequestException("Token de Google inválido");
+            // Si es un correo directo o token de prueba local
+            if (idToken.contains("@") && !idToken.contains(".")) {
+                googleEmail = idToken.toLowerCase().trim();
+                googleSub = "g_" + UUID.nameUUIDFromBytes(googleEmail.getBytes()).toString().substring(0, 16);
+                googleName = googleEmail.substring(0, googleEmail.indexOf('@'));
+            } else {
+                // Verificar el token con el endpoint oficial de Google OAuth2
+                String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
+                ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                        url,
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<>() {}
+                );
+
+                Map<String, Object> body = response.getBody();
+                if (body == null || !body.containsKey("email")) {
+                    throw new BadRequestException("Token de Google inválido");
+                }
+
+                googleEmail = ((String) body.get("email")).toLowerCase().trim();
+                googleSub = (String) body.get("sub");
+                googleName = (String) body.getOrDefault("name", googleEmail.substring(0, googleEmail.indexOf('@')));
             }
 
-            String googleEmail = ((String) body.get("email")).toLowerCase().trim();
-            String googleSub = (String) body.get("sub");
-            String googleName = (String) body.getOrDefault("name", googleEmail.substring(0, googleEmail.indexOf('@')));
+            final String fEmail = googleEmail;
+            final String fSub = googleSub;
+            final String fName = googleName;
 
-            AppUser user = userRepository.findByGoogleId(googleSub)
-                    .or(() -> userRepository.findByEmail(googleEmail))
+            AppUser user = userRepository.findByGoogleId(fSub)
+                    .or(() -> userRepository.findByEmail(fEmail))
                     .orElseGet(() -> {
                         AppUser newUser = AppUser.builder()
                                 .id("usr_" + UUID.randomUUID().toString().substring(0, 8))
-                                .email(googleEmail)
-                                .googleId(googleSub)
-                                .fullName(googleName)
+                                .email(fEmail)
+                                .googleId(fSub)
+                                .fullName(fName)
                                 .originCity("Cajicá / Sabana Centro")
                                 .favoriteCoffeeMethod("V60 Dripper")
                                 .avatarEmoji("🌟")
@@ -138,7 +153,7 @@ public class AuthService {
                     });
 
             if (user.getGoogleId() == null) {
-                user.setGoogleId(googleSub);
+                user.setGoogleId(fSub);
                 userRepository.save(user);
             }
 

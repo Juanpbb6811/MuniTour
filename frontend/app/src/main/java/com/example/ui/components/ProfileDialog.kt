@@ -17,13 +17,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Coffee
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationCity
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -52,23 +55,35 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.UserProfile
 import com.example.ui.theme.HtmlClay
 import com.example.ui.theme.HtmlTeal
-import com.example.ui.theme.HtmlTealDark
 
 @Composable
 fun ProfileDialog(
     user: UserProfile,
     onDismiss: () -> Unit,
-    onSaveProfile: (name: String, originCity: String, avatar: String, coffee: String) -> Unit,
+    onSaveProfile: (
+        name: String,
+        originCity: String,
+        avatar: String,
+        coffee: String,
+        phone: String,
+        bio: String,
+        preferredTransport: String
+    ) -> Unit,
     onLogout: () -> Unit,
-    onOpenAuth: () -> Unit
+    onOpenAuth: () -> Unit,
+    onSyncWithBackend: () -> Unit = {}
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(user.name) }
     var originCity by remember { mutableStateOf(user.originCity) }
     var avatarEmoji by remember { mutableStateOf(user.avatarEmoji) }
     var favoriteCoffee by remember { mutableStateOf(user.favoriteCoffeeMethod) }
+    var phone by remember { mutableStateOf(user.phone) }
+    var bio by remember { mutableStateOf(user.bio) }
+    var preferredTransport by remember { mutableStateOf(user.preferredTransport) }
 
     val avatars = listOf("🧭", "☕", "🥾", "🚴", "🍽️", "🎨", "🌿", "🏛️")
+    val transportOptions = listOf("Tren / RegioTram", "Bicicleta MTB", "Caminata / Senderismo", "Vehículo Particular", "Transporte Público")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -172,9 +187,17 @@ fun ProfileDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre") },
+                        label = { Text("Nombre completo") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("profile_edit_name")
+                    )
+
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = { Text("Teléfono / WhatsApp") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("profile_edit_phone")
                     )
 
                     OutlinedTextField(
@@ -182,7 +205,15 @@ fun ProfileDialog(
                         onValueChange = { originCity = it },
                         label = { Text("Ciudad de residencia") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("profile_edit_city")
+                    )
+
+                    OutlinedTextField(
+                        value = bio,
+                        onValueChange = { bio = it },
+                        label = { Text("Biografía / Presentación de viajero") },
+                        maxLines = 3,
+                        modifier = Modifier.fillMaxWidth().testTag("profile_edit_bio")
                     )
 
                     OutlinedTextField(
@@ -190,8 +221,29 @@ fun ProfileDialog(
                         onValueChange = { favoriteCoffee = it },
                         label = { Text("Método de café preferido") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("profile_edit_coffee")
                     )
+
+                    Text("Transporte preferido en la Sabana:", style = MaterialTheme.typography.labelSmall)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        transportOptions.forEach { transport ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (preferredTransport == transport) HtmlTeal.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { preferredTransport = transport }
+                            ) {
+                                Text(
+                                    text = transport,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = if (preferredTransport == transport) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (preferredTransport == transport) HtmlTeal else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                    }
                 } else {
                     // Metric stats cards
                     Card(
@@ -239,17 +291,50 @@ fun ProfileDialog(
                         }
                     }
 
-                    // Preferences
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Preferences and Traveler Details
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Teléfono: ${user.phone}", style = MaterialTheme.typography.bodySmall)
+                        }
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.LocationCity, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Ciudad de origen: ${user.originCity}", style = MaterialTheme.typography.bodySmall)
                         }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.DirectionsBus, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Transporte favorito: ${user.preferredTransport}", style = MaterialTheme.typography.bodySmall)
+                        }
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Coffee, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Método de café favorito: ${user.favoriteCoffeeMethod}", style = MaterialTheme.typography.bodySmall)
+                            Text("Método de café: ${user.favoriteCoffeeMethod}", style = MaterialTheme.typography.bodySmall)
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Miembro desde: ${user.memberSince}", style = MaterialTheme.typography.bodySmall)
+                        }
+
+                        if (user.bio.isNotBlank()) {
+                            Card(
+                                shape = RoundedCornerShape(10.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                            ) {
+                                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.Top) {
+                                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp), tint = HtmlTeal)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = user.bio, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
                     }
                 }
@@ -263,7 +348,17 @@ fun ProfileDialog(
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Editar Preferencias")
+                        Text("Editar Perfil Completo")
+                    }
+
+                    // Sincronizar con el Servidor
+                    OutlinedButton(
+                        onClick = onSyncWithBackend,
+                        modifier = Modifier.fillMaxWidth().testTag("profile_sync_button")
+                    ) {
+                        Icon(Icons.Default.CloudSync, contentDescription = null, modifier = Modifier.size(18.dp), tint = HtmlTeal)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Sincronizar con el Servidor", color = HtmlTeal)
                     }
 
                     if (user.isLoggedIn) {
@@ -297,7 +392,7 @@ fun ProfileDialog(
                         }
                         Button(
                             onClick = {
-                                onSaveProfile(name, originCity, avatarEmoji, favoriteCoffee)
+                                onSaveProfile(name, originCity, avatarEmoji, favoriteCoffee, phone, bio, preferredTransport)
                                 isEditing = false
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = HtmlTeal),

@@ -13,6 +13,9 @@ public class UserMapper {
                 .email(entity.getEmail())
                 .fullName(entity.getFullName())
                 .originCity(entity.getOriginCity() != null ? entity.getOriginCity() : "Cajicá, Cundinamarca")
+                .phone(entity.getPhone() != null ? entity.getPhone() : "+57 310 123 4567")
+                .bio(entity.getBio() != null ? entity.getBio() : "Apasionado por el café y el turismo sostenible.")
+                .preferredTransport(entity.getPreferredTransport() != null ? entity.getPreferredTransport() : "Tren / RegioTram")
                 .avatarEmoji(entity.getAvatarEmoji() != null ? entity.getAvatarEmoji() : "🧭")
                 .travelerLevel(entity.getTravelerLevel() != null ? entity.getTravelerLevel() : "Explorador Cittaslow")
                 .completedRoutesCount(entity.getCompletedRoutesCount() != null ? entity.getCompletedRoutesCount() : 0)
@@ -20,6 +23,7 @@ public class UserMapper {
                 .reviewsCount(entity.getReviewsCount() != null ? entity.getReviewsCount() : 0)
                 .ecoPoints(entity.getEcoPoints() != null ? entity.getEcoPoints() : 0)
                 .favoriteCoffeeMethod(entity.getFavoriteCoffeeMethod() != null ? entity.getFavoriteCoffeeMethod() : "Filtrado Chemex")
+                .createdAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null)
                 .build();
     }
 }

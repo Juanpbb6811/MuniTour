@@ -2,12 +2,15 @@
 -- Inserción segura con ON CONFLICT para PostgreSQL / Supabase
 
 -- 1. App Users (Usuario demo con contraseña 'munitour2026' con BCrypt)
-INSERT INTO app_users (id, email, password_hash, full_name, origin_city, favorite_coffee_method, avatar_emoji, eco_points, traveler_level, completed_routes_count, visited_places_count, reviews_count)
+INSERT INTO app_users (id, email, password_hash, full_name, phone, bio, preferred_transport, origin_city, favorite_coffee_method, avatar_emoji, eco_points, traveler_level, completed_routes_count, visited_places_count, reviews_count)
 VALUES (
     'usr_demo_01',
     'juanpablobejarano0@gmail.com',
     '$2a$10$wT0l/eP7Yf.qDskV4h0E3O3zE8Qk7R3xY1iFvCj6y5H6uJ6e3qV.G',
     'Juan Pablo Bejarano',
+    '+57 310 123 4567',
+    'Amante del café de altura, el senderismo en Montepincio y la cultura de la Sabana Centro.',
+    'Tren / RegioTram',
     'Cajicá / Bogotá',
     'V60 Dripper',
     '🧭',

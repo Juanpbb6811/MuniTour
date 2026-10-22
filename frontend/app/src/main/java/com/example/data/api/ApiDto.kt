@@ -101,15 +101,69 @@ data class ReviewDto(
 @JsonClass(generateAdapter = true)
 data class AuthRequest(
     @Json(name = "email") val email: String,
-    @Json(name = "password") val password: String,
+    @Json(name = "password") val password: String? = null,
+    @Json(name = "name") val name: String? = null,
     @Json(name = "fullName") val fullName: String? = null
 )
 
 @JsonClass(generateAdapter = true)
+data class GoogleAuthRequest(
+    @Json(name = "id_token") val idToken: String
+)
+
+@JsonClass(generateAdapter = true)
 data class AuthResponse(
-    @Json(name = "token") val token: String,
-    @Json(name = "userId") val userId: String,
-    @Json(name = "name") val name: String,
-    @Json(name = "email") val email: String,
+    @Json(name = "token") val token: String = "",
+    @Json(name = "user_id") val userId: String = "",
+    @Json(name = "name") val name: String = "",
+    @Json(name = "email") val email: String = "",
+    @Json(name = "traveler_level") val travelerLevel: String = "Explorador Cittaslow",
     @Json(name = "role") val role: String = "traveler"
+)
+
+@JsonClass(generateAdapter = true)
+data class InterMunicipalRouteDto(
+    @Json(name = "id") val id: String = "",
+    @Json(name = "title") val title: String = "",
+    @Json(name = "subtitle") val subtitle: String = "",
+    @Json(name = "theme") val theme: String = "",
+    @Json(name = "municipalities") val municipalities: List<String> = emptyList(),
+    @Json(name = "total_distance_km") val totalDistanceKm: Double = 0.0,
+    @Json(name = "estimated_duration") val estimatedDuration: String = "",
+    @Json(name = "transport_mode") val transportMode: String = "",
+    @Json(name = "difficulty") val difficulty: String = "",
+    @Json(name = "key_stops") val keyStops: List<String> = emptyList(),
+    @Json(name = "description") val description: String = "",
+    @Json(name = "highlight_tip") val highlightTip: String = "",
+    @Json(name = "emoji") val emoji: String = "🛤️"
+)
+
+@JsonClass(generateAdapter = true)
+data class UserProfileDto(
+    @Json(name = "id") val id: String = "",
+    @Json(name = "email") val email: String = "",
+    @Json(name = "full_name") val fullName: String = "",
+    @Json(name = "phone") val phone: String? = null,
+    @Json(name = "bio") val bio: String? = null,
+    @Json(name = "origin_city") val originCity: String? = null,
+    @Json(name = "avatar_emoji") val avatarEmoji: String? = null,
+    @Json(name = "traveler_level") val travelerLevel: String? = null,
+    @Json(name = "favorite_coffee_method") val favoriteCoffeeMethod: String? = null,
+    @Json(name = "preferred_transport") val preferredTransport: String? = null,
+    @Json(name = "completed_routes_count") val completedRoutesCount: Int = 0,
+    @Json(name = "visited_places_count") val visitedPlacesCount: Int = 0,
+    @Json(name = "reviews_count") val reviewsCount: Int = 0,
+    @Json(name = "eco_points") val ecoPoints: Int = 0,
+    @Json(name = "created_at") val createdAt: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class UserUpdateProfileDto(
+    @Json(name = "name") val name: String? = null,
+    @Json(name = "phone") val phone: String? = null,
+    @Json(name = "bio") val bio: String? = null,
+    @Json(name = "origin_city") val originCity: String? = null,
+    @Json(name = "avatar_emoji") val avatarEmoji: String? = null,
+    @Json(name = "favorite_coffee_method") val favoriteCoffeeMethod: String? = null,
+    @Json(name = "preferred_transport") val preferredTransport: String? = null
 )

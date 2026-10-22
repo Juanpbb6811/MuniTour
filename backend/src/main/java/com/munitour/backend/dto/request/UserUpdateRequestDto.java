@@ -19,6 +19,12 @@ public class UserUpdateRequestDto {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("phone")
+    private String phone;
+
+    @JsonProperty("bio")
+    private String bio;
+
     @JsonProperty("origin_city")
     private String originCity;
 
@@ -27,4 +33,7 @@ public class UserUpdateRequestDto {
 
     @JsonProperty("favorite_coffee_method")
     private String favoriteCoffeeMethod;
+
+    @JsonProperty("preferred_transport")
+    private String preferredTransport;
 }

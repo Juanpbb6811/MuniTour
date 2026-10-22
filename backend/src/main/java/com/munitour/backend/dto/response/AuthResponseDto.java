@@ -22,6 +22,15 @@ public class AuthResponseDto {
     @JsonProperty("user_id")
     private String userId;
 
+    @JsonProperty("userId")
+    public String getCamelUserId() {
+        return userId;
+    }
+
+    @JsonProperty("role")
+    @Builder.Default
+    private String role = "traveler";
+
     @JsonProperty("name")
     private String name;
 

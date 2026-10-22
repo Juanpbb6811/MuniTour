@@ -100,6 +100,8 @@ fun MainAppScreen(
     val reviewingPlace by viewModel.reviewingPlace.collectAsState()
     val showAddBusiness by viewModel.showAddBusinessDialog.collectAsState()
     val showAuthDialog by viewModel.showAuthDialog.collectAsState()
+    val isAuthLoading by viewModel.isAuthLoading.collectAsState()
+    val authError by viewModel.authError.collectAsState()
     val showProfileDialog by viewModel.showProfileDialog.collectAsState()
     val showInterMunicipalDialog by viewModel.showInterMunicipalDialog.collectAsState()
     val toast by viewModel.toast.collectAsState()
@@ -457,13 +459,16 @@ fun MainAppScreen(
         ProfileDialog(
             user = currentUser,
             onDismiss = { viewModel.closeProfileDialog() },
-            onSaveProfile = { name, originCity, avatar, coffee ->
-                viewModel.updateProfile(name, originCity, avatar, coffee)
+            onSaveProfile = { name, originCity, avatar, coffee, phone, bio, preferredTransport ->
+                viewModel.saveFullProfile(name, originCity, avatar, coffee, phone, bio, preferredTransport)
             },
             onLogout = { viewModel.logoutUser() },
             onOpenAuth = {
                 viewModel.closeProfileDialog()
                 viewModel.openAuthDialog()
+            },
+            onSyncWithBackend = {
+                viewModel.syncData()
             }
         )
     }
@@ -472,13 +477,21 @@ fun MainAppScreen(
     if (showAuthDialog) {
         AuthDialog(
             onDismiss = { viewModel.closeAuthDialog() },
-            onLoginSuccess = { email, name ->
-                viewModel.loginUser(email, name)
+            onLoginWithEmail = { email, pass ->
+                viewModel.loginWithEmail(email, pass)
+            },
+            onRegisterWithEmail = { name, email, pass ->
+                viewModel.registerWithEmail(name, email, pass)
+            },
+            onLoginWithGoogle = { idTokenOrEmail ->
+                viewModel.loginWithGoogle(idTokenOrEmail)
             },
             onContinueAsGuest = {
                 viewModel.closeAuthDialog()
                 viewModel.showToast("Modo explorador activado")
-            }
+            },
+            isLoading = isAuthLoading,
+            errorMessage = authError
         )
     }
 }

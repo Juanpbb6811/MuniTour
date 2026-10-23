@@ -1,10 +1,12 @@
 package com.munitour.backend.controller;
 
+import com.munitour.backend.dto.request.EventAiImportRequestDto;
 import com.munitour.backend.dto.request.EventRequestDto;
 import com.munitour.backend.dto.response.EventResponseDto;
 import com.munitour.backend.entity.CulturalEvent;
 import com.munitour.backend.mapper.EventMapper;
 import com.munitour.backend.service.EventService;
+import com.munitour.backend.service.GoogleGeminiEventParserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final GoogleGeminiEventParserService geminiEventParserService;
 
     @GetMapping
     @Operation(summary = "Listar eventos culturales con filtros por destino o día")
@@ -40,10 +43,17 @@ public class EventController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo evento cultural")
+    @Operation(summary = "Crear un nuevo evento cultural manualmente")
     public ResponseEntity<EventResponseDto> createEvent(@RequestBody EventRequestDto request) {
         CulturalEvent entity = EventMapper.toEntity(request);
         CulturalEvent saved = eventService.create(entity);
         return ResponseEntity.ok(EventMapper.toResponseDto(saved));
+    }
+
+    @PostMapping("/ai-import")
+    @Operation(summary = "Importar y parsear automáticamente un evento de redes sociales usando Inteligencia Artificial (Gemini)")
+    public ResponseEntity<EventResponseDto> importEventWithAi(@RequestBody EventAiImportRequestDto request) {
+        CulturalEvent event = geminiEventParserService.parseAndSaveEvent(request);
+        return ResponseEntity.ok(EventMapper.toResponseDto(event));
     }
 }

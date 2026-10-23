@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO de respuesta para un evento cultural.
- * Estructura exacta esperada por el frontend Android (CulturalEventDto).
+ * Soporta serialización dual (snake_case y camelCase) para compatibilidad total con Android Moshi.
  */
 @Data
 @Builder
@@ -54,4 +54,25 @@ public class EventResponseDto {
 
     @JsonProperty("description")
     private String description;
+
+    // Métodos de compatibilidad dual para clientes Android Moshi (camelCase)
+    @JsonProperty("destinationId")
+    public String getDestinationIdCamel() {
+        return destinationId;
+    }
+
+    @JsonProperty("dayName")
+    public String getDayNameCamel() {
+        return dayName;
+    }
+
+    @JsonProperty("monthYear")
+    public String getMonthYearCamel() {
+        return monthYear;
+    }
+
+    @JsonProperty("isFree")
+    public Boolean getIsFreeCamel() {
+        return isFree;
+    }
 }

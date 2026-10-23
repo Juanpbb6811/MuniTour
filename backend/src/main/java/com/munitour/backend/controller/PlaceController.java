@@ -25,8 +25,16 @@ public class PlaceController {
     private final PlaceService placeService;
     private final OsmPlaceImporterService osmPlaceImporterService;
 
+    @GetMapping({"/sync-auto", "/sync-osm"})
+    @PostMapping({"/sync-auto", "/sync-osm"})
+    @Operation(summary = "Sincronización automática de restaurantes desde OpenStreetMap (Nominatim)")
+    public ResponseEntity<OsmImportResultDto> syncAuto() {
+        OsmImportResultDto result = osmPlaceImporterService.runFullAutoSync();
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/import-osm")
-    @Operation(summary = "Importar restaurantes y cafeterías reales desde OpenStreetMap (Overpass API)")
+    @Operation(summary = "Importar restaurantes y cafeterías reales desde OpenStreetMap")
     public ResponseEntity<OsmImportResultDto> importFromOsm(
             @RequestParam(required = false, defaultValue = "cajica") String destinationId,
             @RequestParam(required = false, defaultValue = "Cajicá") String municipality,

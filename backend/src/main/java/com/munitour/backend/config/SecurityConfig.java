@@ -61,6 +61,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/places").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/places/import-osm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/sync-auto").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/sync-osm").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/places/self-manage").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dishes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()

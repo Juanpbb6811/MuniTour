@@ -31,5 +31,6 @@ data class Place(
     val yRatio: Float = 0.5f,
     val address: String = "",
     val distanceKm: Float = 0.8f,
+    val imageUrl: String? = null,
     val operative: OperativeDetailsService = OperativeDetailsService()
 )

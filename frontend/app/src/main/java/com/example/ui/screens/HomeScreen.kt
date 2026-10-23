@@ -33,6 +33,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -40,6 +42,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.data.model.Destination
 import com.example.data.model.InterMunicipalRoute
 import com.example.data.model.Place
@@ -78,7 +81,7 @@ fun HomeScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(HtmlBgLight)
+            .background(MaterialTheme.colorScheme.background)
             .testTag("home_screen_lazy_column"),
         contentPadding = PaddingValues(bottom = 90.dp)
     ) {
@@ -99,7 +102,7 @@ fun HomeScreen(
                             text = "MuniTour",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = HtmlFgLight
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         DestinationSelector(
                             destinations = destinations,
@@ -185,13 +188,13 @@ fun HomeScreen(
                 ) {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AltRoute, contentDescription = null, tint = HtmlTeal, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.AltRoute, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Rutas Entre Municipios",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = HtmlFgLight
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                         Text(
@@ -201,7 +204,7 @@ fun HomeScreen(
                         )
                     }
                     TextButton(onClick = onOpenInterMunicipalRoutes) {
-                        Text("Ver todas", color = HtmlTeal, fontWeight = FontWeight.Bold)
+                        Text("Ver todas", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -227,11 +230,11 @@ fun HomeScreen(
                                 ) {
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
-                                        color = HtmlTeal.copy(alpha = 0.15f)
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                     ) {
                                         Text(
                                             text = "${route.emoji} ${route.theme}",
-                                            color = HtmlTeal,
+                                            color = MaterialTheme.colorScheme.primary,
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -242,7 +245,7 @@ fun HomeScreen(
                                         text = "${route.totalDistanceKm} km",
                                         fontWeight = FontWeight.Bold,
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = HtmlClay
+                                        color = MaterialTheme.colorScheme.secondary
                                     )
                                 }
 
@@ -251,7 +254,7 @@ fun HomeScreen(
                                     text = route.title,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = HtmlFgLight
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -291,7 +294,7 @@ fun HomeScreen(
                             text = "Restaurantes & Cafés en Cajicá",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = HtmlFgLight
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Comercios reales de la sabana verificados en mapa",
@@ -300,7 +303,7 @@ fun HomeScreen(
                         )
                     }
                     TextButton(onClick = onNavigateToGastronomy) {
-                        Text("Ver menú", color = HtmlClay, fontWeight = FontWeight.Bold)
+                        Text("Ver menú", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -322,12 +325,21 @@ fun HomeScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(52.dp)
+                                    .size(56.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(HtmlClay.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = place.emoji, fontSize = 28.sp)
+                                if (!place.imageUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = place.imageUrl,
+                                        contentDescription = place.name,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Text(text = place.emoji, fontSize = 28.sp)
+                                }
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -350,7 +362,7 @@ fun HomeScreen(
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = ThemeTealBg),
+                colors = CardDefaults.cardColors(containerColor = if (isSystemInDarkTheme()) Color(0xFF15404A) else ThemeTealBg),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 20.dp)
@@ -375,9 +387,9 @@ fun HomeScreen(
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.testTag("home_add_business_button")
                     ) {
-                        Icon(Icons.Default.AddBusiness, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.AddBusiness, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Registrar mi Negocio", style = MaterialTheme.typography.labelMedium)
+                        Text("Registrar mi Negocio", color = Color.White, style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }

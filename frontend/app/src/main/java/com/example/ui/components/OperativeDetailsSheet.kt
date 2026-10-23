@@ -34,6 +34,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -53,6 +55,11 @@ import com.example.data.model.Place
 import com.example.data.model.Review
 import com.example.ui.theme.BrandClay
 import com.example.ui.theme.BrandTealDark
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.ui.theme.HtmlClayDark
+import com.example.ui.theme.ThemeClaySheet
 import com.example.ui.theme.BrandTealPrimary
 import com.example.ui.theme.StarGold
 
@@ -69,12 +76,45 @@ fun OperativeDetailsSheet(
     onAddReviewClick: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    
+    val isDark = isSystemInDarkTheme()
+    val isSabor = place.kind == "sabor"
+    
+    val containerColor = if (isSabor) {
+        if (isDark) Color(0xFF2A1A10) else ThemeClaySheet
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    
+    val onSurfaceColor = if (isSabor) {
+        if (isDark) Color(0xFFFFE2B8) else Color(0xFF2A1A10)
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    
+    val onSurfaceVariantColor = if (isSabor) {
+        if (isDark) Color(0xFFE58F63) else Color(0xFF6B5645)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val primaryColor = if (isSabor) {
+        if (isDark) HtmlClayDark else BrandClay
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    
+    val surfaceVariantColor = if (isSabor) {
+        if (isDark) Color(0xFF3E2723) else Color.White
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = containerColor,
         modifier = Modifier.testTag("operative_details_bottom_sheet")
     ) {
         Column(
@@ -83,6 +123,20 @@ fun OperativeDetailsSheet(
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Restaurant / Venue Hero Photo Banner
+            if (!place.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = place.imageUrl,
+                    contentDescription = place.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+            }
+
             // Header with badge, title and close
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -104,12 +158,13 @@ fun OperativeDetailsSheet(
                         Text(
                             text = place.name,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = onSurfaceColor
                         )
                         Text(
                             text = place.tag,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = onSurfaceVariantColor
                         )
                     }
                 }
@@ -121,7 +176,7 @@ fun OperativeDetailsSheet(
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorito",
-                        tint = if (isFavorite) Color(0xFFD1352B) else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isFavorite) Color(0xFFD1352B) else onSurfaceVariantColor
                     )
                 }
             }
@@ -135,7 +190,7 @@ fun OperativeDetailsSheet(
             ) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = if (isSabor) (if (isDark) Color(0xFF3E2723) else Color.White) else MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.weight(1f)
                 ) {
                     Column(modifier = Modifier.padding(10.dp)) {
@@ -143,27 +198,28 @@ fun OperativeDetailsSheet(
                             Icon(
                                 imageVector = Icons.Default.Schedule,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = primaryColor,
                                 modifier = Modifier.size(15.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "Espera est.",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                         }
                         Text(
                             text = place.operative.estimatedWaitMinutes,
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = onSurfaceColor
                         )
                     }
                 }
 
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    color = if (isSabor) (if (isDark) Color(0xFF3E2723) else Color.White) else MaterialTheme.colorScheme.secondaryContainer,
                     modifier = Modifier.weight(1f)
                 ) {
                     Column(modifier = Modifier.padding(10.dp)) {
@@ -178,13 +234,14 @@ fun OperativeDetailsSheet(
                             Text(
                                 text = "Reputación",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = if (isSabor) onSurfaceVariantColor else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                         Text(
                             text = "${place.stars}.0 (${place.reviewCount} reseñas)",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = onSurfaceColor
                         )
                     }
                 }
@@ -199,7 +256,8 @@ fun OperativeDetailsSheet(
                 Text(
                     text = "☕ Métodos de Preparación de Café",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = onSurfaceColor
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 FlowRow(
@@ -229,14 +287,14 @@ fun OperativeDetailsSheet(
                     Text(
                         text = "Origen del grano: ${place.operative.coffeeOrigin}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = onSurfaceVariantColor
                     )
                 }
                 if (place.operative.baristaSpecialty.isNotBlank()) {
                     Text(
                         text = "Especialidad: ${place.operative.baristaSpecialty}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = onSurfaceVariantColor
                     )
                 }
 
@@ -247,12 +305,14 @@ fun OperativeDetailsSheet(
             Text(
                 text = "🍽️ Dinámica del Servicio a la Mesa",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = onSurfaceColor
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = place.operative.tableServiceDynamics,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = onSurfaceColor
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -261,27 +321,28 @@ fun OperativeDetailsSheet(
             Text(
                 text = "🕒 Horario y Atención",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = onSurfaceColor
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = place.operative.businessHours,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = onSurfaceVariantColor
             )
             if (place.address.isNotBlank()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = primaryColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = place.address,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = onSurfaceVariantColor
                     )
                 }
             }
@@ -291,18 +352,20 @@ fun OperativeDetailsSheet(
                 Spacer(modifier = Modifier.height(12.dp))
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(containerColor = surfaceVariantColor)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             text = "🌱 Historia del Emprendimiento",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = onSurfaceColor
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = place.operative.ownerStory,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            color = onSurfaceColor
                         )
                     }
                 }
@@ -318,14 +381,16 @@ fun OperativeDetailsSheet(
                 Button(
                     onClick = onViewMenuClick,
                     modifier = Modifier.weight(1f).testTag("operative_sheet_menu_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text(if (place.kind == "sabor") "Ver Menú" else "Ver Ruta Cultural")
+                    Text(if (place.kind == "sabor") "Ver Menú" else "Ver Ruta Cultural", color = Color.White)
                 }
 
                 OutlinedButton(
                     onClick = onDirectionsClick,
-                    modifier = Modifier.weight(1f).testTag("operative_sheet_directions_button")
+                    modifier = Modifier.weight(1f).testTag("operative_sheet_directions_button"),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor)
                 ) {
                     Icon(imageVector = Icons.Default.Navigation, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
@@ -344,14 +409,15 @@ fun OperativeDetailsSheet(
                 Text(
                     text = "Reseñas Comunitarias (${reviews.size})",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = onSurfaceColor
                 )
                 Button(
                     onClick = onAddReviewClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandClay),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
                     modifier = Modifier.testTag("operative_sheet_add_review_button")
                 ) {
-                    Text("Calificar", style = MaterialTheme.typography.labelMedium)
+                    Text("Calificar", style = MaterialTheme.typography.labelMedium, color = Color.White)
                 }
             }
 
@@ -360,8 +426,8 @@ fun OperativeDetailsSheet(
             reviews.take(3).forEach { review ->
                 Card(
                     shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                    colors = CardDefaults.cardColors(containerColor = surfaceVariantColor),
+                    border = if (!isSabor) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)) else null,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -369,16 +435,16 @@ fun OperativeDetailsSheet(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(review.authorName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                            Text(review.authorName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, color = onSurfaceColor)
                             StarsRating(rating = review.rating)
                         }
                         Text(
                             text = review.serviceHighlight,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = primaryColor
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(review.comment, style = MaterialTheme.typography.bodySmall)
+                        Text(review.comment, style = MaterialTheme.typography.bodySmall, color = onSurfaceColor)
                     }
                 }
             }

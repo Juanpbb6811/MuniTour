@@ -62,6 +62,9 @@ public class PlaceResponseDto {
     @JsonProperty("distance_km")
     private Double distanceKm;
 
+    @JsonProperty("image_url")
+    private String imageUrl;
+
     @JsonProperty("operative")
     private OperativeDetailsResponseDto operative;
 }

@@ -36,6 +36,7 @@ data class PlaceDto(
     @Json(name = "yRatio") val yRatio: Float = 0.5f,
     @Json(name = "address") val address: String = "",
     @Json(name = "distanceKm") val distanceKm: Float = 0.8f,
+    @Json(name = "image_url") val imageUrl: String? = null,
     @Json(name = "operative") val operative: OperativeDetailsDto = OperativeDetailsDto()
 )
 

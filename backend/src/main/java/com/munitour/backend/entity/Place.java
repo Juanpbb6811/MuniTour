@@ -72,6 +72,9 @@ public class Place {
     @Column(name = "distance_km")
     private Float distanceKm = 0.8f;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     /** Métodos de preparación de café, almacenados como texto separado por comas */
     @Column(name = "coffee_methods", columnDefinition = "TEXT")
     private String coffeeMethods;

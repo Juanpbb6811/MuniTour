@@ -57,6 +57,8 @@ public class SecurityConfig {
                         // Endpoints de consulta de turismo - públicos (solo GET)
                         .requestMatchers(HttpMethod.GET, "/api/places").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/import-osm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/self-manage").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dishes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events").permitAll()

@@ -22,6 +22,11 @@ interface ApiService {
     @POST("api/places")
     suspend fun createPlace(@Body place: PlaceDto): PlaceDto
 
+    @POST("api/places/import-osm")
+    suspend fun importOsmPlaces(
+        @Query("municipality") municipality: String = "Cajicá"
+    ): Map<String, Any>
+
     @GET("api/dishes")
     suspend fun getDishes(
         @Query("destinationId") destinationId: String? = null

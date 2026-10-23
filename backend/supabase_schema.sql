@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS places (
     y_ratio REAL DEFAULT 0.5,
     address TEXT,
     distance_km REAL DEFAULT 0.8,
+    image_url TEXT,
     -- Detalles operativos de barismo y atención
     coffee_methods TEXT, -- Separados por comas
     coffee_origin VARCHAR(128),

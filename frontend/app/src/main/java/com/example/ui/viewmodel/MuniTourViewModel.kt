@@ -74,7 +74,7 @@ class MuniTourViewModel(
     val selectedPlaceId: StateFlow<String> = _selectedPlaceId.asStateFlow()
 
     // Events State
-    private val _selectedDay = MutableStateFlow(26)
+    private val _selectedDay = MutableStateFlow(java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH))
     val selectedDay: StateFlow<Int> = _selectedDay.asStateFlow()
 
     // Interactive Dialogs
@@ -469,6 +469,18 @@ class MuniTourViewModel(
                 showToast(msg)
             }.onFailure {
                 showToast("No se pudo conectar al servidor. Usando datos locales.")
+            }
+        }
+    }
+
+    fun importOsmPlaces(municipality: String = "Cajicá") {
+        viewModelScope.launch {
+            showToast("Consultando restaurantes de $municipality en OpenStreetMap...")
+            val result = repository.importOsmPlaces(municipality)
+            result.onSuccess { msg ->
+                showToast(msg)
+            }.onFailure { err ->
+                showToast("Aviso al consultar OSM: ${err.message}")
             }
         }
     }

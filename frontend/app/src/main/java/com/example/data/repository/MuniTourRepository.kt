@@ -1176,6 +1176,14 @@ class MuniTourRepository {
             "Sincronizado exitosamente con el backend"
         }
     }
+
+    suspend fun importOsmPlaces(municipality: String = "Cajicá"): Result<String> {
+        return runCatching {
+            ApiClient.apiService.importOsmPlaces(municipality)
+            syncWithRemoteBackend()
+            "Restaurantes de $municipality importados y ubicados en el mapa con éxito"
+        }
+    }
 }
 
 // Extension Mappers for Backend DTOs <-> Domain Models
@@ -1196,6 +1204,7 @@ fun PlaceDto.toDomain(): Place {
         yRatio = this.yRatio,
         address = this.address,
         distanceKm = this.distanceKm,
+        imageUrl = this.imageUrl,
         operative = OperativeDetailsService(
             coffeeMethods = this.operative.coffeeMethods,
             coffeeOrigin = this.operative.coffeeOrigin,
@@ -1230,6 +1239,7 @@ fun Place.toDto(): PlaceDto {
         yRatio = this.yRatio,
         address = this.address,
         distanceKm = this.distanceKm,
+        imageUrl = this.imageUrl,
         operative = OperativeDetailsDto(
             coffeeMethods = this.operative.coffeeMethods,
             coffeeOrigin = this.operative.coffeeOrigin,

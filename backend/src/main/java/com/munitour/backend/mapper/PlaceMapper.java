@@ -33,6 +33,7 @@ public class PlaceMapper {
                 .yRatio(dto.getYRatio() != null ? dto.getYRatio().floatValue() : 0.5f)
                 .address(dto.getAddress())
                 .distanceKm(dto.getDistanceKm() != null ? dto.getDistanceKm().floatValue() : 0.8f)
+                .imageUrl(dto.getImageUrl())
                 .coffeeMethods(op != null && op.getCoffeeMethods() != null ? String.join(",", op.getCoffeeMethods()) : null)
                 .coffeeOrigin(op != null ? op.getCoffeeOrigin() : null)
                 .baristaSpecialty(op != null ? op.getBaristaSpecialty() : null)
@@ -90,6 +91,7 @@ public class PlaceMapper {
                 .yRatio(entity.getYRatio() != null ? entity.getYRatio().doubleValue() : 0.5)
                 .address(entity.getAddress() != null ? entity.getAddress() : "")
                 .distanceKm(entity.getDistanceKm() != null ? entity.getDistanceKm().doubleValue() : 0.8)
+                .imageUrl(entity.getImageUrl())
                 .operative(operative)
                 .build();
     }

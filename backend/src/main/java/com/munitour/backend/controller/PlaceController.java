@@ -1,9 +1,11 @@
 package com.munitour.backend.controller;
 
 import com.munitour.backend.dto.request.PlaceRequestDto;
+import com.munitour.backend.dto.response.OsmImportResultDto;
 import com.munitour.backend.dto.response.PlaceResponseDto;
 import com.munitour.backend.entity.Place;
 import com.munitour.backend.mapper.PlaceMapper;
+import com.munitour.backend.service.OsmPlaceImporterService;
 import com.munitour.backend.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +23,22 @@ import java.util.List;
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final OsmPlaceImporterService osmPlaceImporterService;
+
+    @PostMapping("/import-osm")
+    @Operation(summary = "Importar restaurantes y cafeterías reales desde OpenStreetMap (Overpass API)")
+    public ResponseEntity<OsmImportResultDto> importFromOsm(
+            @RequestParam(required = false, defaultValue = "cajica") String destinationId,
+            @RequestParam(required = false, defaultValue = "Cajicá") String municipality,
+            @RequestParam(required = false, defaultValue = "4.9186") Double lat,
+            @RequestParam(required = false, defaultValue = "-74.0259") Double lon,
+            @RequestParam(required = false, defaultValue = "5000") Integer radiusMeters
+    ) {
+        OsmImportResultDto result = osmPlaceImporterService.importRestaurantsForMunicipality(
+                destinationId, municipality, lat, lon, radiusMeters
+        );
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping
     @Operation(summary = "Listar lugares con filtros opcionales (municipio, destino, tipo)")

@@ -51,6 +51,9 @@ public class SecurityConfig {
 
                 // Reglas de autorización
                 .authorizeHttpRequests(auth -> auth
+                        // Endpoints públicos de bienvenida y salud
+                        .requestMatchers("/", "/error", "/favicon.ico").permitAll()
+
                         // Endpoints de autenticación - públicos
                         .requestMatchers("/api/auth/**").permitAll()
 

@@ -10,6 +10,7 @@ import com.munitour.backend.service.GoogleGeminiEventParserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +51,23 @@ public class EventController {
         return ResponseEntity.ok(EventMapper.toResponseDto(saved));
     }
 
-    @PostMapping("/ai-import")
-    @Operation(summary = "Importar y parsear automáticamente un evento de redes sociales usando Inteligencia Artificial (Gemini)")
-    public ResponseEntity<EventResponseDto> importEventWithAi(@RequestBody EventAiImportRequestDto request) {
+    @PostMapping(value = "/ai-import", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Importar y parsear automáticamente un evento de redes sociales usando JSON")
+    public ResponseEntity<EventResponseDto> importEventWithAiJson(@RequestBody EventAiImportRequestDto request) {
+        CulturalEvent event = geminiEventParserService.parseAndSaveEvent(request);
+        return ResponseEntity.ok(EventMapper.toResponseDto(event));
+    }
+
+    @PostMapping(value = "/ai-import", consumes = {MediaType.TEXT_PLAIN_VALUE, MediaType.ALL_VALUE})
+    @Operation(summary = "Importar evento desde texto plano (ideal para webhooks sin necesidad de formato JSON)")
+    public ResponseEntity<EventResponseDto> importEventFromPlainText(
+            @RequestBody String rawText,
+            @RequestParam(required = false, defaultValue = "cajica") String destinationId
+    ) {
+        EventAiImportRequestDto request = EventAiImportRequestDto.builder()
+                .postText(rawText)
+                .destinationId(destinationId)
+                .build();
         CulturalEvent event = geminiEventParserService.parseAndSaveEvent(request);
         return ResponseEntity.ok(EventMapper.toResponseDto(event));
     }

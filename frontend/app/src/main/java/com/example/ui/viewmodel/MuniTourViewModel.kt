@@ -145,18 +145,17 @@ class MuniTourViewModel(
 
     val filteredDishes: StateFlow<List<Dish>> = combine(
         allDishes,
-        allPlaces,
         selectedDestination,
         selectedDishCategory,
         filterPlaceId,
         saboresSearchQuery
-    ) { dishes, places, dest, cat, placeId, query ->
+    ) { dishes, dest, cat, placeId, query ->
         val candidateDishes = if (placeId != null) {
             val matching = dishes.filter { it.placeId == placeId }
             if (matching.isNotEmpty()) {
                 matching
             } else {
-                val targetPlace = places.firstOrNull { it.id == placeId }
+                val targetPlace = allPlaces.value.firstOrNull { it.id == placeId }
                 if (targetPlace != null) repository.getDishesForPlace(targetPlace) else emptyList()
             }
         } else {

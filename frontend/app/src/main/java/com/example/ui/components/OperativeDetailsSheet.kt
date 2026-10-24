@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.Dish
 import com.example.data.model.Place
 import com.example.data.model.Review
 import com.example.ui.theme.BrandClay
@@ -68,6 +69,7 @@ import com.example.ui.theme.StarGold
 fun OperativeDetailsSheet(
     place: Place,
     reviews: List<Review>,
+    dishes: List<Dish> = emptyList(),
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onDismiss: () -> Unit,
@@ -371,6 +373,130 @@ fun OperativeDetailsSheet(
                 }
             }
 
+            // In-Sheet Culinary Menu & Specialties
+            if (isSabor && dishes.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "🍽️ Menú & Especialidades",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = onSurfaceColor
+                        )
+                        Text(
+                            text = "${dishes.size} platos recomendados de la casa",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = onSurfaceVariantColor
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = primaryColor.copy(alpha = 0.15f),
+                        onClick = onViewMenuClick
+                    ) {
+                        Text(
+                            text = "Explorar ➔",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                dishes.forEach { dish ->
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceVariantColor),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(primaryColor.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(dish.emoji, fontSize = 22.sp)
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = dish.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = onSurfaceColor,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    Text(
+                                        text = formatMoney(dish.price),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = primaryColor
+                                    )
+                                }
+                                if (dish.description.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = dish.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = onSurfaceVariantColor,
+                                        maxLines = 2
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⏱️ ${dish.waitTimeMin} min",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = onSurfaceVariantColor
+                                    )
+                                    if (dish.isSignature) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = StarGold.copy(alpha = 0.2f)
+                                        ) {
+                                            Text(
+                                                text = "⭐ Especialidad",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isDark) StarGold else Color(0xFFB7791F),
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Action Buttons
@@ -383,7 +509,7 @@ fun OperativeDetailsSheet(
                     modifier = Modifier.weight(1f).testTag("operative_sheet_menu_button"),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text(if (place.kind == "sabor") "Ver Menú" else "Ver Ruta Cultural", color = Color.White)
+                    Text(if (place.kind == "sabor") "Ver Menú Completo" else "Ver Ruta Cultural", color = Color.White)
                 }
 
                 OutlinedButton(

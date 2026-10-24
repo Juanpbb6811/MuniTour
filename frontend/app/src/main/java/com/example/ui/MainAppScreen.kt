@@ -362,9 +362,11 @@ fun MainAppScreen(
     // Modal Sheet: Detalle Operativo del Servicio
     inspectingPlace?.let { place ->
         val placeReviews = allReviews.filter { it.placeId == place.id }
+        val placeDishes = viewModel.getDishesForPlace(place)
         OperativeDetailsSheet(
             place = place,
             reviews = placeReviews,
+            dishes = placeDishes,
             isFavorite = favorites.contains("p:${place.id}"),
             onToggleFavorite = { viewModel.toggleFavorite("p:${place.id}") },
             onDismiss = { viewModel.closeInspectPlace() },

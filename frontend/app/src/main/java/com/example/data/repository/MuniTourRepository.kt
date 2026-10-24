@@ -279,7 +279,7 @@ class MuniTourRepository {
     private val _places = MutableStateFlow<List<Place>>(initialPlaces())
     val places: StateFlow<List<Place>> = _places.asStateFlow()
 
-    private val _dishes = MutableStateFlow<List<Dish>>(initialDishes())
+    private val _dishes = MutableStateFlow<List<Dish>>(ensureDishesForPlaces(initialPlaces(), initialDishes()))
     val dishes: StateFlow<List<Dish>> = _dishes.asStateFlow()
 
     private val _events = MutableStateFlow<List<CulturalEvent>>(initialEvents())
@@ -873,6 +873,400 @@ class MuniTourRepository {
         )
     }
 
+    fun getDishesForPlace(place: Place): List<Dish> {
+        val existing = _dishes.value.filter { it.placeId == place.id }
+        if (existing.isNotEmpty()) return existing
+        return generateSignatureDishes(place)
+    }
+
+    fun ensureDishesForPlaces(placesList: List<Place>, currentDishes: List<Dish>): List<Dish> {
+        val result = currentDishes.toMutableList()
+        val saborPlaces = placesList.filter { it.kind == "sabor" }
+        for (place in saborPlaces) {
+            val exists = result.any { it.placeId == place.id }
+            if (!exists) {
+                result.addAll(generateSignatureDishes(place))
+            }
+        }
+        return result.distinctBy { it.id }
+    }
+
+    fun generateSignatureDishes(place: Place): List<Dish> {
+        val n = (place.name + " " + place.tag).lowercase()
+        val pId = place.id
+        val pName = place.name
+        val dest = place.destinationId
+
+        return when {
+            n.contains("pizza") || n.contains("pizzer") || n.contains("italiana") || n.contains("pasta") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-pizza-artesanal",
+                        destinationId = dest,
+                        name = "Pizza Artesanal al Horno de Leña",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Masa madre madurada 48h con salsa pomodoro San Marzano, mozzarella fior di latte y albahaca fresca del huerto.",
+                        price = 28000,
+                        emoji = "🍕",
+                        isSignature = true,
+                        waitTimeMin = 15
+                    ),
+                    Dish(
+                        id = "${pId}-pizza-rustica",
+                        destinationId = dest,
+                        name = "Pizza Rústica Sabanera & Prosciutto",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Base crujiente con jamón madurado, rúcula tierna, reducción de balsámico y lascas de queso parmesano.",
+                        price = 34000,
+                        emoji = "🍕",
+                        isSignature = true,
+                        waitTimeMin = 18
+                    ),
+                    Dish(
+                        id = "${pId}-calzone-especial",
+                        destinationId = dest,
+                        name = "Calzone Relleno de Tres Quesos & Tocineta",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Masa horneada rellena de mozzarella, ricotta campesina, tocineta ahumada crocante y champiñones al ajillo.",
+                        price = 26000,
+                        emoji = "🥟",
+                        isSignature = false,
+                        waitTimeMin = 14
+                    ),
+                    Dish(
+                        id = "${pId}-limonada-menta",
+                        destinationId = dest,
+                        name = "Limonada Natural de Hierbabuena & Miel",
+                        category = "cafe",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Cítricos frescos de la región endulzados con miel de caña virgen y hojas de hierbabuena maceradas.",
+                        price = 8500,
+                        emoji = "🍹",
+                        isSignature = false,
+                        waitTimeMin = 5
+                    )
+                )
+            }
+            n.contains("cafe") || n.contains("café") || n.contains("coffee") || n.contains("barista") || n.contains("panad") || n.contains("bakery") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-cafe-filtrado",
+                        destinationId = dest,
+                        name = "Café Filtrado de Especialidad (Origen Sabana)",
+                        category = "cafe",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Grano arábica seleccionado de alta montaña, preparado en método V60 o Chemex con notas a panela y jazmín.",
+                        price = 9000,
+                        emoji = "☕",
+                        isSignature = true,
+                        waitTimeMin = 6
+                    ),
+                    Dish(
+                        id = "${pId}-cappuccino-sabanero",
+                        destinationId = dest,
+                        name = "Cappuccino Cremoso con Leche de la Región",
+                        category = "cafe",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Espresso doble con leche cremada al punto óptimo, cacao espolvoreado y arte latte.",
+                        price = 8500,
+                        emoji = "☕",
+                        isSignature = false,
+                        waitTimeMin = 5
+                    ),
+                    Dish(
+                        id = "${pId}-croissant-almendras",
+                        destinationId = dest,
+                        name = "Croissant Francés de Mantequilla & Almendras",
+                        category = "reposteria",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Hojaldre crujiente horneado en casa, relleno de crema de almendras tostadas y azúcar glas.",
+                        price = 8500,
+                        emoji = "🥐",
+                        isSignature = true,
+                        waitTimeMin = 4
+                    ),
+                    Dish(
+                        id = "${pId}-torta-zanahoria",
+                        destinationId = dest,
+                        name = "Torta Casera de Zanahoria & Nuez",
+                        category = "reposteria",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Bizcocho húmedo con especias dulces, nueces crujientes y cobertura suave de queso crema.",
+                        price = 9500,
+                        emoji = "🍰",
+                        isSignature = false,
+                        waitTimeMin = 3
+                    )
+                )
+            }
+            n.contains("parrilla") || n.contains("asado") || n.contains("carne") || n.contains("fundo") || n.contains("brasa") || n.contains("steak") || n.contains("bbq") || n.contains("fogata") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-parrillada-mixta",
+                        destinationId = dest,
+                        name = "Picada Sabanera Mixta al Carbón",
+                        category = "parrilla",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Punta de anca jugosa, lomo de cerdo marinado, chorizo campesino, papa salada y plátano maduro con queso.",
+                        price = 44000,
+                        emoji = "🥩",
+                        isSignature = true,
+                        waitTimeMin = 20
+                    ),
+                    Dish(
+                        id = "${pId}-costillas-bbq",
+                        destinationId = dest,
+                        name = "Costillitas de Cerdo Ahumadas en BBQ Criolla",
+                        category = "parrilla",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Costillar tierno asado a fuego lento en vara de leña, bañado en salsa BBQ artesanal con panela melcochada.",
+                        price = 38000,
+                        emoji = "🍖",
+                        isSignature = true,
+                        waitTimeMin = 18
+                    ),
+                    Dish(
+                        id = "${pId}-chorizo-artesanal",
+                        destinationId = dest,
+                        name = "Chorizo Criollo Campesino al Carbón",
+                        category = "parrilla",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Elaborado con carnes magras y hierbas de huerta, servido con chimichurri casero y arepa de chócolo.",
+                        price = 16000,
+                        emoji = "🌭",
+                        isSignature = false,
+                        waitTimeMin = 10
+                    ),
+                    Dish(
+                        id = "${pId}-refajo-frio",
+                        destinationId = dest,
+                        name = "Jarra de Refajo Helado con Hierbabuena",
+                        category = "tradicional",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Tradicional maridaje campesino de cerveza rubia bien fría con gaseosa colombiana y toques cítricos.",
+                        price = 14000,
+                        emoji = "🍺",
+                        isSignature = false,
+                        waitTimeMin = 5
+                    )
+                )
+            }
+            n.contains("burger") || n.contains("hamburg") || n.contains("alitas") || n.contains("wings") || n.contains("rapida") || n.contains("rápida") || n.contains("fast") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-burger-artesanal",
+                        destinationId = dest,
+                        name = "Hamburguesa Artesanal Doble Carne Sabanera",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Dos jugosas carnes de res maduradas 150g, queso cheddar fundido, tocineta crocante caramelizada y pan brioche.",
+                        price = 28000,
+                        emoji = "🍔",
+                        isSignature = true,
+                        waitTimeMin = 14
+                    ),
+                    Dish(
+                        id = "${pId}-alitas-bbq",
+                        destinationId = dest,
+                        name = "Alitas Crujientes Bañadas en Miel Mostaza (12 pcs)",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Alitas doradas en punto crujiente, salsa de la casa agridulce, bastones de apio y salsa ranch de hierbas.",
+                        price = 24000,
+                        emoji = "🍗",
+                        isSignature = true,
+                        waitTimeMin = 12
+                    ),
+                    Dish(
+                        id = "${pId}-papas-rusticas",
+                        destinationId = dest,
+                        name = "Papas Rústicas Gratinadas con Tocineta & Sour Cream",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Papas nativas en cascos crocantes, queso fundido de la sabana, tocineta en trozos y cebollín fresco.",
+                        price = 15000,
+                        emoji = "🍟",
+                        isSignature = false,
+                        waitTimeMin = 8
+                    )
+                )
+            }
+            n.contains("helad") || n.contains("ice_cream") || n.contains("postre") || n.contains("dulce") || n.contains("waffle") || n.contains("crepe") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-copa-artesanal",
+                        destinationId = dest,
+                        name = "Copa Suprema de Helado Artesanal Sabanero",
+                        category = "reposteria",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Tres bolas de helado elaborado con leche fresca de finca, coulis de mora silvestre, chantilly y barquillos.",
+                        price = 13000,
+                        emoji = "🍨",
+                        isSignature = true,
+                        waitTimeMin = 4
+                    ),
+                    Dish(
+                        id = "${pId}-waffle-nutella",
+                        destinationId = dest,
+                        name = "Waffle Belga con Nutella & Fresas de la Sabana",
+                        category = "reposteria",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Waffle caliente crocante por fuera y suave por dentro, bañado en crema de avellanas, fresas frescas y helado de vainilla.",
+                        price = 17500,
+                        emoji = "🧇",
+                        isSignature = true,
+                        waitTimeMin = 8
+                    ),
+                    Dish(
+                        id = "${pId}-fresas-crema",
+                        destinationId = dest,
+                        name = "Fresas con Crema de Leche Campesina Fresca",
+                        category = "reposteria",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "El clásico manjar de Cajicá con fresas seleccionadas recién cosechadas y crema montada a mano sin preservantes.",
+                        price = 12000,
+                        emoji = "🍓",
+                        isSignature = false,
+                        waitTimeMin = 3
+                    )
+                )
+            }
+            n.contains("amasijo") || n.contains("arepa") || n.contains("almojabana") || n.contains("fonda") || n.contains("tipic") || n.contains("típic") || n.contains("colombian") -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-ajiaco-campesino",
+                        destinationId = dest,
+                        name = "Ajiaco Santafereño con Pollo Campesino",
+                        category = "tradicional",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Espesa sopa tradicional de tres papas con pechuga campesina deshilachada, guascas frescas, alcaparras, crema y aguacate.",
+                        price = 29000,
+                        emoji = "🍲",
+                        isSignature = true,
+                        waitTimeMin = 15
+                    ),
+                    Dish(
+                        id = "${pId}-arepa-boyacense",
+                        destinationId = dest,
+                        name = "Arepa de Maíz Pelao Asada al Carbón",
+                        category = "tradicional",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Rellena de cuajada fresca campesina con toques de panela, dorada a fuego vivo en tiesto de barro.",
+                        price = 8500,
+                        emoji = "🫓",
+                        isSignature = true,
+                        waitTimeMin = 6
+                    ),
+                    Dish(
+                        id = "${pId}-sobrebarriga-criolla",
+                        destinationId = dest,
+                        name = "Sobrebarriga en Salsa Criolla con Yuca & Arroz",
+                        category = "tradicional",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Carne tierna estofada durante horas en hogao de cebolla y tomate chonto, acompañada de yuca al vapor y plátano maduro.",
+                        price = 33000,
+                        emoji = "🍛",
+                        isSignature = false,
+                        waitTimeMin = 15
+                    ),
+                    Dish(
+                        id = "${pId}-jugo-lulo",
+                        destinationId = dest,
+                        name = "Jugo Natural de Lulo Fresco de la Región",
+                        category = "cafe",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Pulpa de lulo natural preparada en agua fresca o leche entera de Cajicá con toque de panela.",
+                        price = 7500,
+                        emoji = "🥤",
+                        isSignature = false,
+                        waitTimeMin = 5
+                    )
+                )
+            }
+            else -> {
+                listOf(
+                    Dish(
+                        id = "${pId}-plato-del-chef",
+                        destinationId = dest,
+                        name = "Especialidad de la Casa al Grill",
+                        category = "tradicional",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Plato insignia preparado al momento con ingredientes frescos de la provincia de Sabana Centro.",
+                        price = 31000,
+                        emoji = "🍽️",
+                        isSignature = true,
+                        waitTimeMin = 16
+                    ),
+                    Dish(
+                        id = "${pId}-pechuga-gratinada",
+                        destinationId = dest,
+                        name = "Pechuga Campesina Gratinada con Champiñones",
+                        category = "parrilla",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Filete de pechuga dorada a la plancha cubierta de champiñones salteados al vino y queso campesino fundido.",
+                        price = 28000,
+                        emoji = "🍗",
+                        isSignature = true,
+                        waitTimeMin = 15
+                    ),
+                    Dish(
+                        id = "${pId}-empanaditas-casa",
+                        destinationId = dest,
+                        name = "Porción de Empanaditas Típicas Crocantes (x4)",
+                        category = "rapida",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Empanadas de masa de maíz crocante rellenas de carne desmechada, acompañadas de ají casero y limón mandarino.",
+                        price = 12000,
+                        emoji = "🥟",
+                        isSignature = false,
+                        waitTimeMin = 8
+                    ),
+                    Dish(
+                        id = "${pId}-bebida-refrescante",
+                        destinationId = dest,
+                        name = "Bebida Cítrica Natural de la Casa",
+                        category = "cafe",
+                        placeId = pId,
+                        placeName = pName,
+                        description = "Infusión fría de frutos amarillos y hierbas aromáticas de la huerta.",
+                        price = 8000,
+                        emoji = "🍹",
+                        isSignature = false,
+                        waitTimeMin = 4
+                    )
+                )
+            }
+        }
+    }
+
     private fun initialEvents(): List<CulturalEvent> {
         return listOf(
             CulturalEvent(
@@ -1153,11 +1547,14 @@ class MuniTourRepository {
         return runCatching {
             val remotePlaces = ApiClient.apiService.getPlaces()
             if (remotePlaces.isNotEmpty()) {
-                _places.value = remotePlaces.map { it.toDomain() }
+                val domainPlaces = remotePlaces.map { it.toDomain() }
+                _places.value = domainPlaces
+                _dishes.update { ensureDishesForPlaces(domainPlaces, it) }
             }
             val remoteDishes = ApiClient.apiService.getDishes()
             if (remoteDishes.isNotEmpty()) {
-                _dishes.value = remoteDishes.map { it.toDomain() }
+                val baseDishes = remoteDishes.map { it.toDomain() }
+                _dishes.value = ensureDishesForPlaces(_places.value, baseDishes)
             }
             val remoteEvents = ApiClient.apiService.getEvents()
             if (remoteEvents.isNotEmpty()) {

@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.munitour.backend.dto.response.OsmImportResultDto;
 import com.munitour.backend.dto.response.PlaceResponseDto;
+import com.munitour.backend.entity.Dish;
 import com.munitour.backend.entity.Place;
 import com.munitour.backend.mapper.PlaceMapper;
+import com.munitour.backend.repository.DishRepository;
 import com.munitour.backend.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,7 @@ import java.util.*;
 public class OsmPlaceImporterService {
 
     private final PlaceRepository placeRepository;
+    private final DishRepository dishRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -75,6 +78,7 @@ public class OsmPlaceImporterService {
             Thread.sleep(15000);
             log.info("\uD83D\uDE80 [AUTO-SYNC INICIAL] Ejecutando sincronización automática de restaurantes para Cajicá...");
             runFullAutoSync();
+            seedDishesForMissingPlaces();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
@@ -233,6 +237,8 @@ public class OsmPlaceImporterService {
         log.info("✅ Sincronización automática de Cajicá completada: {} nuevos, {} actualizados. Total procesados: {}",
                 importedCount, updatedCount, totalFound);
 
+        seedDishesForMissingPlaces();
+
         List<PlaceResponseDto> dtoList = PlaceMapper.toResponseDtoList(savedPlaces);
 
         return OsmImportResultDto.builder()
@@ -348,6 +354,320 @@ public class OsmPlaceImporterService {
             Integer radiusMeters
     ) {
         return runFullAutoSync();
+    }
+
+    public void seedDishesForMissingPlaces() {
+        try {
+            List<Place> places = placeRepository.findAll();
+            int seededCount = 0;
+            for (Place place : places) {
+                if (!"sabor".equalsIgnoreCase(place.getKind())) continue;
+                List<Dish> existing = dishRepository.findByPlaceId(place.getId());
+                if (existing == null || existing.isEmpty()) {
+                    List<Dish> dishes = generateSignatureDishes(place);
+                    dishRepository.saveAll(dishes);
+                    seededCount += dishes.size();
+                }
+            }
+            if (seededCount > 0) {
+                log.info("🍽️ [DISH SEEDER] Se han generado y persistido {} platos para restaurantes en la base de datos.", seededCount);
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ [DISH SEEDER] Error al sembrar platos: {}", e.getMessage());
+        }
+    }
+
+    private List<Dish> generateSignatureDishes(Place place) {
+        String n = (place.getName() + " " + (place.getTag() != null ? place.getTag() : "")).toLowerCase();
+        String pId = place.getId();
+        String pName = place.getName();
+        String dest = place.getDestinationId() != null ? place.getDestinationId() : "cajica";
+
+        List<Dish> list = new ArrayList<>();
+
+        if (n.contains("pizza") || n.contains("pizzer") || n.contains("italiana") || n.contains("pasta")) {
+            list.add(Dish.builder()
+                    .id(pId + "-pizza-art")
+                    .destinationId(dest)
+                    .name("Pizza Artesanal al Horno de Leña")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Masa madre madurada 48h, salsa pomodoro San Marzano, mozzarella fior di latte y albahaca fresca.")
+                    .price(28000L)
+                    .emoji("🍕")
+                    .isSignature(true)
+                    .waitTimeMin(15)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-pizza-rust")
+                    .destinationId(dest)
+                    .name("Pizza Rústica Sabanera & Prosciutto")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Base crocante con jamón madurado, rúcula tierna, reducción balsámica y queso parmesano.")
+                    .price(34000L)
+                    .emoji("🍕")
+                    .isSignature(true)
+                    .waitTimeMin(18)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-calzone")
+                    .destinationId(dest)
+                    .name("Calzone Relleno de Tres Quesos & Tocineta")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Masa horneada rellena de mozzarella, ricotta campesina, tocineta ahumada y champiñones.")
+                    .price(26000L)
+                    .emoji("🥟")
+                    .isSignature(false)
+                    .waitTimeMin(14)
+                    .build());
+        } else if (n.contains("cafe") || n.contains("café") || n.contains("coffee") || n.contains("barista") || n.contains("panad") || n.contains("bakery")) {
+            list.add(Dish.builder()
+                    .id(pId + "-cafe-filt")
+                    .destinationId(dest)
+                    .name("Café Filtrado de Especialidad (Origen Sabana)")
+                    .category("cafe")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Grano arábica seleccionado de alta montaña, preparado en método V60 o Chemex con notas a panela y jazmín.")
+                    .price(9000L)
+                    .emoji("☕")
+                    .isSignature(true)
+                    .waitTimeMin(6)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-cappuccino")
+                    .destinationId(dest)
+                    .name("Cappuccino Cremoso Sabanero")
+                    .category("cafe")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Espresso doble con leche cremada de fincas locales, cacao espolvoreado y arte latte.")
+                    .price(8500L)
+                    .emoji("☕")
+                    .isSignature(false)
+                    .waitTimeMin(5)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-croissant")
+                    .destinationId(dest)
+                    .name("Croissant Francés de Mantequilla & Almendras")
+                    .category("reposteria")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Hojaldre crujiente horneado en casa relleno de crema de almendras tostadas.")
+                    .price(8500L)
+                    .emoji("🥐")
+                    .isSignature(true)
+                    .waitTimeMin(4)
+                    .build());
+        } else if (n.contains("parrilla") || n.contains("asado") || n.contains("carne") || n.contains("fundo") || n.contains("brasa") || n.contains("steak") || n.contains("bbq") || n.contains("fogata")) {
+            list.add(Dish.builder()
+                    .id(pId + "-picada")
+                    .destinationId(dest)
+                    .name("Picada Sabanera Mixta al Carbón")
+                    .category("parrilla")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Punta de anca jugosa, lomo de cerdo marinado, chorizo campesino, papa salada y plátano maduro con queso.")
+                    .price(44000L)
+                    .emoji("🥩")
+                    .isSignature(true)
+                    .waitTimeMin(20)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-costillas")
+                    .destinationId(dest)
+                    .name("Costillitas de Cerdo Ahumadas en BBQ Criolla")
+                    .category("parrilla")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Costillar tierno asado a fuego lento en vara de leña, bañado en salsa BBQ artesanal con panela melcochada.")
+                    .price(38000L)
+                    .emoji("🍖")
+                    .isSignature(true)
+                    .waitTimeMin(18)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-chorizo")
+                    .destinationId(dest)
+                    .name("Chorizo Criollo Campesino al Carbón")
+                    .category("parrilla")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Elaborado con carnes magras y hierbas de huerta, servido con chimichurri casero y arepa de chócolo.")
+                    .price(16000L)
+                    .emoji("🌭")
+                    .isSignature(false)
+                    .waitTimeMin(10)
+                    .build());
+        } else if (n.contains("burger") || n.contains("hamburg") || n.contains("alitas") || n.contains("wings") || n.contains("rapida") || n.contains("rápida") || n.contains("fast")) {
+            list.add(Dish.builder()
+                    .id(pId + "-burger")
+                    .destinationId(dest)
+                    .name("Hamburguesa Artesanal Doble Carne Sabanera")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Dos jugosas carnes de res maduradas 150g, queso cheddar fundido, tocineta crocante y pan brioche.")
+                    .price(28000L)
+                    .emoji("🍔")
+                    .isSignature(true)
+                    .waitTimeMin(14)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-alitas")
+                    .destinationId(dest)
+                    .name("Alitas Crujientes Bañadas en Miel Mostaza (12 pcs)")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Alitas doradas en punto crujiente con salsa agridulce y salsa ranch de hierbas.")
+                    .price(24000L)
+                    .emoji("🍗")
+                    .isSignature(true)
+                    .waitTimeMin(12)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-papas")
+                    .destinationId(dest)
+                    .name("Papas Rústicas Gratinadas con Tocineta & Sour Cream")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Papas nativas en cascos crocantes, queso fundido sabanero, tocineta y cebollín fresco.")
+                    .price(15000L)
+                    .emoji("🍟")
+                    .isSignature(false)
+                    .waitTimeMin(8)
+                    .build());
+        } else if (n.contains("helad") || n.contains("ice_cream") || n.contains("postre") || n.contains("dulce") || n.contains("waffle") || n.contains("crepe")) {
+            list.add(Dish.builder()
+                    .id(pId + "-helado")
+                    .destinationId(dest)
+                    .name("Copa Suprema de Helado Artesanal Sabanero")
+                    .category("reposteria")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Tres bolas de helado elaborado con leche fresca de finca, coulis de mora silvestre, chantilly y barquillos.")
+                    .price(13000L)
+                    .emoji("🍨")
+                    .isSignature(true)
+                    .waitTimeMin(4)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-waffle")
+                    .destinationId(dest)
+                    .name("Waffle Belga con Nutella & Fresas de la Sabana")
+                    .category("reposteria")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Waffle caliente crocante por fuera y suave por dentro, bañado en crema de avellanas, fresas frescas y helado.")
+                    .price(17500L)
+                    .emoji("🧇")
+                    .isSignature(true)
+                    .waitTimeMin(8)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-fresas")
+                    .destinationId(dest)
+                    .name("Fresas con Crema de Leche Campesina Fresca")
+                    .category("reposteria")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Fresas seleccionadas recién cosechadas de Cajicá con crema montada a mano.")
+                    .price(12000L)
+                    .emoji("🍓")
+                    .isSignature(false)
+                    .waitTimeMin(3)
+                    .build());
+        } else if (n.contains("amasijo") || n.contains("arepa") || n.contains("almojabana") || n.contains("fonda") || n.contains("tipic") || n.contains("típic") || n.contains("colombian")) {
+            list.add(Dish.builder()
+                    .id(pId + "-ajiaco")
+                    .destinationId(dest)
+                    .name("Ajiaco Santafereño con Pollo Campesino")
+                    .category("tradicional")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Espesa sopa tradicional de tres papas con pechuga campesina deshilachada, guascas, alcaparras, crema y aguacate.")
+                    .price(29000L)
+                    .emoji("🍲")
+                    .isSignature(true)
+                    .waitTimeMin(15)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-arepa")
+                    .destinationId(dest)
+                    .name("Arepa de Maíz Pelao Asada al Carbón")
+                    .category("tradicional")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Rellena de cuajada fresca campesina con toques de panela, dorada a fuego vivo en tiesto de barro.")
+                    .price(8500L)
+                    .emoji("🫓")
+                    .isSignature(true)
+                    .waitTimeMin(6)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-sobrebarriga")
+                    .destinationId(dest)
+                    .name("Sobrebarriga en Salsa Criolla con Yuca & Arroz")
+                    .category("tradicional")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Carne tierna estofada durante horas en hogao de cebolla y tomate chonto con yuca al vapor y maduro.")
+                    .price(33000L)
+                    .emoji("🍛")
+                    .isSignature(false)
+                    .waitTimeMin(15)
+                    .build());
+        } else {
+            list.add(Dish.builder()
+                    .id(pId + "-especial")
+                    .destinationId(dest)
+                    .name("Especialidad de la Casa al Grill")
+                    .category("tradicional")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Plato insignia preparado al momento con ingredientes frescos de la provincia de Sabana Centro.")
+                    .price(31000L)
+                    .emoji("🍽️")
+                    .isSignature(true)
+                    .waitTimeMin(16)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-pechuga")
+                    .destinationId(dest)
+                    .name("Pechuga Campesina Gratinada con Champiñones")
+                    .category("parrilla")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Filete de pechuga dorada a la plancha cubierta de champiñones salteados al vino y queso fundido.")
+                    .price(28000L)
+                    .emoji("🍗")
+                    .isSignature(true)
+                    .waitTimeMin(15)
+                    .build());
+            list.add(Dish.builder()
+                    .id(pId + "-empanadas")
+                    .destinationId(dest)
+                    .name("Porción de Empanaditas Típicas Crocantes (x4)")
+                    .category("rapida")
+                    .placeId(pId)
+                    .placeName(pName)
+                    .description("Empanadas de masa de maíz crocante rellenas de carne desmechada con ají casero.")
+                    .price(12000L)
+                    .emoji("🥟")
+                    .isSignature(false)
+                    .waitTimeMin(8)
+                    .build());
+        }
+
+        return list;
     }
 
     private record PlaceCategoryMetadata(

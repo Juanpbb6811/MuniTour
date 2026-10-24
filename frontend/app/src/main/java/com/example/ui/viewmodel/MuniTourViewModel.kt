@@ -145,15 +145,26 @@ class MuniTourViewModel(
 
     val filteredDishes: StateFlow<List<Dish>> = combine(
         allDishes,
+        allPlaces,
         selectedDestination,
         selectedDishCategory,
         filterPlaceId,
         saboresSearchQuery
-    ) { dishes, dest, cat, placeId, query ->
-        dishes.filter { dish ->
+    ) { dishes, places, dest, cat, placeId, query ->
+        val candidateDishes = if (placeId != null) {
+            val matching = dishes.filter { it.placeId == placeId }
+            if (matching.isNotEmpty()) {
+                matching
+            } else {
+                val targetPlace = places.firstOrNull { it.id == placeId }
+                if (targetPlace != null) repository.getDishesForPlace(targetPlace) else emptyList()
+            }
+        } else {
+            dishes
+        }
+        candidateDishes.filter { dish ->
             (dish.destinationId == dest.id || dest.id == "cajica") &&
             (cat == null || dish.category == cat) &&
-            (placeId == null || dish.placeId == placeId) &&
             (query.isBlank() || dish.name.contains(query, ignoreCase = true) || dish.description.contains(query, ignoreCase = true) || dish.placeName.contains(query, ignoreCase = true))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -509,6 +520,10 @@ class MuniTourViewModel(
     fun toggleReminder(eventId: String) {
         val active = repository.toggleReminder(eventId)
         showToast(if (active) "Recordatorio programado (1 hora antes) 🔔" else "Recordatorio cancelado")
+    }
+
+    fun getDishesForPlace(place: Place): List<Dish> {
+        return repository.getDishesForPlace(place)
     }
 
     fun navigateToPlaceMenu(placeId: String) {

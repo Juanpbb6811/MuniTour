@@ -52,6 +52,10 @@ import com.example.ui.components.formatMoney
 import com.example.ui.theme.HtmlClay
 import com.example.ui.theme.ThemeClayActive
 import com.example.ui.theme.ThemeClayDishPrice
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.ui.theme.HtmlClayDark
 import com.example.ui.theme.ThemeClayGradientBottom
 import com.example.ui.theme.ThemeClayGradientTop
 import com.example.ui.theme.ThemeClaySheet
@@ -83,27 +87,48 @@ fun SaboresScreen(
 
     val activePlace = places.firstOrNull { it.id == filterPlaceId }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onOpenAddBusiness,
-                containerColor = HtmlClay,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(bottom = 60.dp)
-                    .testTag("sabores_add_business_fab")
-            ) {
-                Row(modifier = Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = "Publicar negocio")
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Autogestión", style = MaterialTheme.typography.labelLarge)
+    val isDark = isSystemInDarkTheme()
+    val clayColors = if (isDark) {
+        darkColorScheme(
+            primary = HtmlClayDark,
+            surface = Color(0xFF2A1A10),
+            background = Color(0xFF1A0D06),
+            onSurface = Color(0xFFFFE2B8),
+            onSurfaceVariant = Color(0xFFE58F63)
+        )
+    } else {
+        lightColorScheme(
+            primary = HtmlClay,
+            surface = ThemeClaySheet,
+            background = ThemeClaySheet,
+            onSurface = Color(0xFF2A1A10),
+            onSurfaceVariant = Color(0xFF6B5645)
+        )
+    }
+
+    MaterialTheme(colorScheme = clayColors) {
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = onOpenAddBusiness,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(bottom = 60.dp)
+                        .testTag("sabores_add_business_fab")
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Add, contentDescription = "Publicar negocio")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Autogestión", style = MaterialTheme.typography.labelLarge)
+                    }
                 }
-            }
-        },
-        modifier = modifier.fillMaxSize()
-    ) { innerPadding ->
-        LazyColumn(
+            },
+            modifier = modifier.fillMaxSize(),
+            containerColor = Color.Transparent
+        ) { innerPadding ->
+            LazyColumn(
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding(),
                 bottom = innerPadding.calculateBottomPadding() + 90.dp
@@ -168,18 +193,17 @@ fun SaboresScreen(
                             val isSelected = selectedCategory == key
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .clickable { onSelectCategory(if (isSelected) null else key) }
-                                    .testTag("category_chip_$key")
+                                modifier = Modifier.testTag("category_chip_$key")
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(52.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isSelected) Color(0xFFFFF1D6) else Color(0x8C542612)),
-                                    contentAlignment = Alignment.Center
+                                Surface(
+                                    modifier = Modifier.size(52.dp),
+                                    shape = CircleShape,
+                                    color = if (isSelected) Color(0xFFFFF1D6) else Color(0x8C542612),
+                                    onClick = { onSelectCategory(if (isSelected) null else key) }
                                 ) {
-                                    Text(text = emoji, fontSize = 24.sp)
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(text = emoji, fontSize = 24.sp)
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -200,7 +224,7 @@ fun SaboresScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(ThemeClaySheet)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 14.dp, vertical = 14.dp)
                 ) {
                     // Small grab handle like in HTML
@@ -222,29 +246,82 @@ fun SaboresScreen(
                     )
 
                     if (activePlace != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = Color(0xFF2A1A10),
-                            modifier = Modifier.clickable { onClearPlaceFilter() }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) Color(0xFF3E2723) else Color(0xFFFFF3E0)
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = "Menú de: ${activePlace.name}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFFE2B8)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Limpiar filtro",
-                                    tint = Color(0xFFFFE2B8),
-                                    modifier = Modifier.size(16.dp)
-                                )
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(text = activePlace.emoji, fontSize = 24.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "Menú: ${activePlace.name}",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = activePlace.tag,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+
+                                    IconButton(
+                                        onClick = { onClearPlaceFilter() },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Ver todos",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⭐ ${activePlace.stars}.0 (${activePlace.reviewCount} reseñas) • ⏱️ ${activePlace.operative.estimatedWaitMinutes}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                        onClick = { onClearPlaceFilter() }
+                                    ) {
+                                        Text(
+                                            text = "Ver todos",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -259,7 +336,7 @@ fun SaboresScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(ThemeClaySheet)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -269,13 +346,13 @@ fun SaboresScreen(
                             text = "No hay platos con este filtro",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2A1A10)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Quita un filtro o cambia la búsqueda.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF6B5645)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         OutlinedButton(onClick = {
@@ -283,7 +360,7 @@ fun SaboresScreen(
                             onClearPlaceFilter()
                             onSearchChange("")
                         }) {
-                            Text("Limpiar filtros", color = Color(0xFFA85B37))
+                            Text("Limpiar filtros", color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -295,18 +372,20 @@ fun SaboresScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(ThemeClaySheet)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(horizontal = 14.dp, vertical = 5.dp)
                     ) {
                         Card(
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) Color(0xFF3E2723) else Color.White
+                            ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            onClick = {
+                                parentPlace?.let { onInspectPlace(it) }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    parentPlace?.let { onInspectPlace(it) }
-                                }
                                 .testTag("dish_card_${dish.id}")
                         ) {
                             Row(
@@ -336,7 +415,7 @@ fun SaboresScreen(
                                             text = dish.name,
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF2A1A10)
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
 
                                         IconButton(
@@ -346,7 +425,7 @@ fun SaboresScreen(
                                             Icon(
                                                 imageVector = if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                                 contentDescription = "Favorito",
-                                                tint = if (isFav) Color(0xFFD1352B) else Color(0xFFB8A48E),
+                                                tint = if (isFav) Color(0xFFD1352B) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.5f),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -355,7 +434,7 @@ fun SaboresScreen(
                                     Text(
                                         text = dish.placeName,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF9B5B36),
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.SemiBold
                                     )
 
@@ -363,7 +442,7 @@ fun SaboresScreen(
                                     Text(
                                         text = dish.description,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF5B4636),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 2
                                     )
 
@@ -377,7 +456,7 @@ fun SaboresScreen(
                                             text = formatMoney(dish.price, destination.currencySymbol),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.ExtraBold,
-                                            color = ThemeClayDishPrice
+                                            color = if (isDark) ThemeClayActive else ThemeClayDishPrice
                                         )
 
                                         if (dish.isSignature) {
@@ -403,4 +482,5 @@ fun SaboresScreen(
             }
         }
     }
+}
 }

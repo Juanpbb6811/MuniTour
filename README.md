@@ -1,97 +1,66 @@
 # 🧭 MuniTour — Plataforma de Turismo Intermunicipal y Gastronomía
 
-Plataforma integral para la promoción del turismo sostenible, la gastronomía típica, el café de especialidad y la agenda cultural de los municipios de **Sabana Centro** (Cajicá, Zipaquirá, Chía, Tabio, Sopó).
+Plataforma móvil integral para el fomento del turismo sostenible, la promoción de la gastronomía típica, el café de especialidad y la difusión de la agenda cultural de los municipios de **Sabana Centro** (Cajicá, Zipaquirá, Chía, Tabio y Sopó).
 
 ---
 
-## 🏛️ Arquitectura del Repositorio (Monorepo)
+## 📲 Descargar App Android (Release v1.0.0)
 
-```
-MuniTour/
-├── frontend/             # Aplicación Móvil Android (Kotlin + Jetpack Compose)
-│   ├── app/              # Código fuente de la app Android
-│   ├── gradle/           # Wrapper y catálogo de dependencias
-│   ├── build.gradle.kts  # Configuración Gradle
-│   └── README.md
-│
-├── backend/              # API REST Backend (Java 21 + Spring Boot 3.4)
-│   ├── src/              # Controladores, Servicios, Entidades JPA, DTOs, Mappers
-│   ├── pom.xml           # Configuración Maven
-│   ├── Dockerfile        # Imagen Docker optimizada para Render.com
-│   ├── supabase_schema.sql # Esquema DDL para PostgreSQL en Supabase
-│   └── README.md
-│
-├── .gitignore            # Reglas de exclusión para Android, Java, IDEs y secretos
-└── README.md             # Esta documentación
-```
+Ya puedes instalar y probar la versión oficial y completa de MuniTour directamente en tu dispositivo Android o emulador:
 
----
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v1.0.0_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/MuniTour/raw/main/releases/MuniTour-v1.0.0.apk)
+[![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://munitour.onrender.com/descargar)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/MuniTour/releases/tag/v1.0.0)
 
-## 📱 1. Frontend — Aplicación Android
+### 🚀 Enlaces de descarga directa:
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar MuniTour-v1.0.0.apk (24.1 MB)](https://munitour.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 📦 **[GitHub Directo: Descargar MuniTour-v1.0.0.apk (24.1 MB)](https://github.com/Juanpbb6811/MuniTour/raw/main/releases/MuniTour-v1.0.0.apk)**
 
-Desarrollada en **Kotlin** con **Jetpack Compose**, Material 3, ViewModel y Retrofit/Moshi.
+### 📱 Instrucciones de Instalación en Android:
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `MuniTour-v1.0.0.apk`.
+2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
+3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi / Samsung, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
+4. Pulsa **Instalar** y ¡listo para recorrer la Sabana!
 
-### Características Principales:
-* **Mapa interactivo:** Visualización de atractivos turísticos y gastronómicos en Sabana Centro.
-* **Sabores locales:** Catálogo de cafés de especialidad, restaurantes tradicionales y platos típicos.
-* **Agenda cultural:** Festivales, eventos municipales y recordatorios con un toque.
-* **Rutas intermunicipales:** Recorridos temáticos (Ruta Férrea del Tren de la Sabana, Travesías ecológicas por el Cerro Majuy).
-* **Perfil del viajero:** Estadísticas, eco-puntos y modo explorador.
-
-### Cómo abrirlo y ejecutarlo:
-1. Abre **Android Studio**.
-2. Selecciona **Open** y elige la carpeta `frontend/`.
-3. Deja que Gradle sincronice las dependencias.
-4. Conecta un dispositivo físico o inicia un emulador y presiona **Run (Shift + F10)**.
+### 🌟 Novedades de la versión v1.0.0:
+- 🍽️ **Menú & Especialidades en Ficha Operativa:** Ahora al seleccionar cualquier restaurante o café en el mapa, puedes ver sus especialidades, precios en pesos colombianos ($ COP), ingredientes y tiempos de espera sin salir del mapa.
+- 🗺️ **Sincronización Automática con OpenStreetMap:** Catálogo enriquecido de restaurantes, asaderos, pizzerías y cafeterías de Cajicá con fotografías en alta definición y clasificación culinaria inteligente.
+- 🎭 **Agenda Cultural Impulsada por IA:** Integración con Google Gemini para la extracción y catalogación automática de eventos, festivales y talleres culturales desde publicaciones oficiales.
+- ⚡ **Optimización Reactiva:** Navegación fluida entre mapa y catálogo de sabores con filtrado instantáneo por municipio y categoría.
 
 ---
 
-## ⚙️ 2. Backend — API REST en Spring Boot
+## 🧭 ¿Qué es MuniTour y qué puedes hacer con la App?
 
-Desarrollado en **Java 21** con **Spring Boot 3.4**, Spring Data JPA, Spring Security, JWT y Swagger.
+MuniTour conecta a turistas, residentes y emprendedores locales en una experiencia móvil interactiva diseñada para redescubrir la riqueza patrimonial, natural y culinaria de la región de Sabana Centro:
 
-### Características Principales:
-* **Endpoints REST completos:** `/api/places`, `/api/dishes`, `/api/events`, `/api/routes`, `/api/reviews`, `/api/users`.
-* **Autenticación dual:** Registro/login tradicional con contraseña encriptada (BCrypt) + Login con Google OAuth2 (`POST /api/auth/google`).
-* **Base de datos:** Compatible con PostgreSQL en la nube a través de **Supabase**.
-* **Documentación interactiva:** Swagger UI en `/swagger-ui.html`.
-* **Despliegue:** Optimizado para **Render.com** mediante `Dockerfile`.
+### 🗺️ 1. Mapa Interactivo y Guía Turística en Vivo
+* Explora parques principales, santuarios, monumentos coloniales, reservas naturales y miradores ecológicos.
+* Indicadores visuales de tipo de lugar (cultural o gastronómico) con acceso inmediato a rutas de cómo llegar por GPS.
+* Ficha de información detallada con historia del lugar, horarios de atención, dinámicas del servicio a la mesa y reseñas comunitarias.
 
-### Cómo abrirlo y ejecutarlo en IntelliJ IDEA:
-1. Abre **IntelliJ IDEA**.
-2. Selecciona **File > Open** y elige la carpeta `backend/`.
-3. IntelliJ detectará automáticamente el archivo `pom.xml` como proyecto Maven.
-4. Abre `src/main/java/com/munitour/backend/MunitourBackendApplication.java` y haz clic en **Run ▶**.
+### 🍽️ 2. Sabores Locales y Catálogo Gastronómico
+* Catálogo segmentado por antojos: **Café de Especialidad**, **Tradicional Sabanero**, **Parrilla & Asados**, **Comida Rápida Artesanal** y **Repostería**.
+* Visualización de cartas completas con precios actualizados, métodos de filtrado de café (V60, Chemex, Prensa Francesa), platos insignia y tiempos estimados de entrega.
+* Módulo de autogestión para que dueños de negocios locales puedan registrar su propio restaurante o café.
 
----
+### 🎭 3. Agenda Cultural y Festivales Municipales
+* Consulta de festivales anuales, ferias artesanales, encuentros de danzas folclóricas y eventos comunitarios en tiempo real.
+* Programación de recordatorios con un solo toque (notificación anticipada para no perderte el evento).
+* Fichas con horario, lugar exacto, costo de entrada (o entrada libre) y categoría del evento.
 
-## 🗄️ 3. Base de Datos en Supabase
+### 🚂 4. Rutas Temáticas y Audioguías Patrimoniales
+* Recorridos guiados por la historia férrea del Tren de la Sabana, travesías por el Cerro Majuy y caminos reales.
+* **Audioguía inmersiva:** Reproductor integrado de audio para escuchar la narración histórica y cultural mientras realizas el recorrido.
 
-1. Crea un proyecto en [Supabase](https://supabase.com).
-2. Ve al **SQL Editor**, copia el contenido de `backend/supabase_schema.sql` y ejecútalo (**Run**).
-3. En **Project Settings > Database**, obtén la cadena de conexión JDBC y configúrala en `backend/src/main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://<TU-HOST-SUPABASE>:5432/postgres?sslmode=require
-   spring.datasource.username=postgres
-   spring.datasource.password=<TU-PASSWORD>
-   ```
+### 🌱 5. Comunidad, Favoritos y Eco-Puntos
+* Guarda tus lugares, platos y eventos favoritos para armar tu propio itinerario de viaje.
+* Deja reseñas comunitarias con calificación en estrellas y comentarios sobre el servicio.
+* Sistema de **Eco-Puntos** que premia a los viajeros por explorar de forma sostenible, visitar artesanos locales y apoyar la economía de los municipios.
 
 ---
 
-## ☁️ 4. Despliegue en Render.com
-
-1. Conecta este repositorio en [Render.com](https://render.com) como **Web Service**.
-2. Configura:
-   * **Root Directory:** `backend`
-   * **Runtime:** Docker (usará el `Dockerfile` de la carpeta backend)
-3. Agrega las variables de entorno:
-   * `SPRING_DATASOURCE_URL`: Tu URL de Supabase con `?sslmode=require`
-   * `SPRING_DATASOURCE_USERNAME`: `postgres`
-   * `SPRING_DATASOURCE_PASSWORD`: Tu contraseña de Supabase
-   * `JWT_SECRET`: Clave secreta para firmar tokens JWT
-   * `PORT`: `8080`
-
----
-
-## 👥 Equipo y Autores
-* **Juan Pablo Bejarano** ([@Juanpbb6811](https://github.com/Juanpbb6811))
+## 🛠️ Tecnologías Principales
+* **Frontend:** Android Nativo (Kotlin 2.2, Jetpack Compose, Material 3, ViewModel StateFlow, Retrofit).
+* **Backend:** Spring Boot 3.4 (Java 21 LTS), Spring Data JPA, Spring Security, Swagger UI.
+* **Base de Datos & Nube:** PostgreSQL alojado en Supabase y contenedor desplegado en Render.

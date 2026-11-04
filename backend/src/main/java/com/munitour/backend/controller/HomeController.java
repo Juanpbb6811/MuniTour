@@ -22,6 +22,7 @@ public class HomeController {
         response.put("version", "1.0.0");
         response.put("swagger_docs", "/swagger-ui.html");
         response.put("public_endpoints", List.of(
+                "/descargar",
                 "/api/places",
                 "/api/places/import-osm",
                 "/api/dishes",
